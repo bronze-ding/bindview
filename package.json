@@ -1,0 +1,28 @@
+{
+  "name": "bindview",
+  "version": "3.0.0",
+  "description": "bindview.js是一个使用虚拟dom来创建真实dom,并实现了模型与视图绑定的javascript库",
+  "main": "./src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bronze-ding/bindview.git"
+  },
+  "keywords": [
+    "bindview",
+    "bindview",
+    "bindview.js",
+    "bindview.js"
+  ],
+  "author": "canlie",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bronze-ding/bindview/issues"
+  },
+  "homepage": "https://github.com/bronze-ding/bindview#readme",
+  "dependencies": {
+    "deep-copy": "^1.4.2"
+  }
+}
