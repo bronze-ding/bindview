@@ -1,2 +1,2 @@
 # bindview
-一个基于bindview.js和webpack打包工具的开发模板环境
+一个使用虚拟dom来创建真实dom,并实现了模型与视图绑定的javascript库
