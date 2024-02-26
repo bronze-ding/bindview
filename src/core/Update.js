@@ -59,6 +59,11 @@ function Assign_key(oldvnode, newvnode) {
  */
 export default function Update() {
   const vm = this
+
+  // 判断初始化是否完成,禁止初始化之前调用更新
+  // 如果_oldvnode为void 0表示未初始化完成退出更新程序
+  if (vm._oldvnode === void 0) return
+
   let newvnode = vm._renderCache() // 获取最新的虚拟节点
 
   // 新 vnode 预处理,进行 key 同步
