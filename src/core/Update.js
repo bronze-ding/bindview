@@ -67,6 +67,7 @@ export default function Update() {
   let newvnode = vm._renderCache() // 获取最新的虚拟节点
 
   // 新 vnode 预处理,进行 key 同步
+  // 新的 vnode 会获得新的 key,需要于旧的 vnode 保持一致
   Assign_key(vm._oldvnode, newvnode)
 
   vm.vnode = null;
