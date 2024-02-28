@@ -14,6 +14,7 @@ import mupdate from "./mupdate"
 
 import addComponents from "./addComponents"
 import use from "./use"
+import proto from "./proto"
 
 /**
  * Component构造函数
@@ -34,6 +35,9 @@ Component.components = addComponents
 
 //加载插件
 Component.use = use
+
+// 添加到原型
+Component.proto = proto
 
 // 初始化
 Component.prototype._Init = Init

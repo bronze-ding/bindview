@@ -2,12 +2,12 @@ import Component from "./Component"
 
 class Bindview extends Component {
   constructor(config) {
-    super(config)
     if (Bindview.dispalyVer) {
       console.log(`%c Bindview.js %c v${Bindview.version} `,
         'background: #35495e; padding: 1px; border-radius: 3px 0 0 3px; color: #fff;',
         'background: #41b883; padding: 1px; border-radius: 0 3px 3px 0; color: #fff',);
     }
+    super(config)
   }
   static version = "3.0.0"
   static dispalyVer = true
@@ -25,6 +25,13 @@ class Bindview extends Component {
    */
   static use(unit) {
     Component.use(unit)
+  }
+  /**
+   * 添加原型属性
+   * @param  {...any} item 
+   */
+  static proto(...item) {
+    Component.proto(...item)
   }
 }
 
