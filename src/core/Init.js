@@ -94,5 +94,5 @@ export default function Init(config) {
 
 
   // 生命周期调用 安装后
-  if (vm.life && vm.life.mounted && typeof vm.life.mounted === 'function') { vm.life.mounted.call(vm) }
+  if (vm.life && vm.life.created && typeof vm.life.created === 'function') { vm.life.created.call(vm) }
 }
