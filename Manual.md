@@ -16,7 +16,7 @@ import Bindview from "bindview"
 new Bindview({
     el:"#Root",
     render(h){
-        return h("div","hello") 
+        return h("div",{},["hello"]) 
     }
 })
 ```
@@ -481,7 +481,7 @@ export default function (props) {
 | :-------------: | :------------: |
 |  `beforeInit`   |  实例初始化前  |
 |    `created`    |  `dom` 创建后  |
-|    `updated`    | 数据改变视图后 |
+|    `updated`    | 数据改变后 |
 | `beforeDestroy` |   组件销毁前   |
 
 ### 1. `beforeInit` 
@@ -530,7 +530,7 @@ function Life() {
 
 ### 3. `updated` 
 
-`updated` 钩子会在 `data` 配置项中的数据被修改时调用
+`updated` 钩子会在 `data` 配置项中的数据被修改后调用
 
 ```jsx
 function Life() {
@@ -599,7 +599,7 @@ export default function App() {
     }),
     life: {
      async created() {
-        let module=await import("@/components/Ttest")
+        let module=await import("@/components/Test")
         this.$appendComponent("Test",module.default)
         this.data.show=true
       }
@@ -626,9 +626,7 @@ createApp(App).$mount("#Root")
 
 ### 3. `$remove`
 
-`$remove` 卸载组件，在组件中使用或通过组件实例调用可卸载组件，卸载时会调用 `beforeDestroy` 生命周期钩子
-
-#### 1.通过组件实例卸载
+`$remove` 卸载组件，通过组件实例调用可卸载组件，卸载时会调用 `beforeDestroy` 生命周期钩子
 
 ```jsx
 import { createApp } from "../../bindview";
@@ -638,30 +636,6 @@ const vm = createApp(App).$mount("#Root")
 
 // 卸载组件
 vm.$remove()
-```
-
-#### 2. 组件中调用卸载
-
-```jsx
-function Dome() {
-  return {
-    name: 'Dome',
-    render() {
-      const { methods: f } = this
-
-      return (
-        <div>
-          <button onClick={f.remove}>卸载组件</button>
-        </div>
-      )
-    },
-    methods: {
-      remove() {
-        this.$remove()
-      }
-    }
-  }
-}
 ```
 
 ### 4. `$mupdate`
@@ -751,10 +725,11 @@ export default function () {
   return {
     el: '#Root',
     render() {
+      const { data: $ } = this
       return (
         <div>
           <div>App</div>
-          <Dome num={send(this, 'num')} arr={send(this.arr, 1)} />
+          <Dome num={send($, 'num')} arr={send($.arr, 1)} />
         </div>
       )
     },
@@ -769,7 +744,7 @@ export default function () {
 
 ### 2. `createId`
 
-`createId` 函数用来创建多个唯一的 `ID`， 函数传入一个数值返回一个长度为该数值的数组数组中包含了唯一 `ID` ,一般配合动态组件使用
+`createId` 函数用来创建多个唯一的 `ID`， 函数传入一个数值返回一个长度为该数值的数组数组中包含了唯一 `ID`,不传入将返回一个唯一的 `ID` ,一般配合动态组件使用
 
 ```jsx
 import { crateId } from "bindview"

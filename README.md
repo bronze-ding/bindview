@@ -1,5 +1,5 @@
 <p align="center">
-    <img alt="logo" src="./Logo.png" width="120" height="120" style="margin-bottom: 10px;">
+    <img alt="logo" src="http://chanlie.space3v.work/Logo.png" width="120" height="120" style="margin-bottom: 10px;">
 </p>
 <h3 align="center" style="margin: 30px 0 30px;font-weight: bold;font-size:40px;">Bindview</h3>
 <h3 align="center">前端UI构建库</h3>
