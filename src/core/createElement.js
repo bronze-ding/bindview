@@ -17,7 +17,7 @@ export default function createElement(vnode) {
     // DOM 节点
     const { elementName, attributes, children, key } = vnode
 
-    const tag = HTML_TAGS[elementName]
+    const tag = HTML_TAGS[elementName] || NAME_SPACE[elementName]
     const object = Object.prototype.toString.call(tag) === '[object Object]'
     const localAttrs = object ? tag.attributes || {} : {}
     const attrs = Object.assign({}, GLOBAL_ATTRIBUTES, localAttrs)
@@ -27,9 +27,9 @@ export default function createElement(vnode) {
     if (tagType === void 0) {
       // 组件
       domExample = vm._createComponentExample(vnode)
-    } else if (Object.prototype.toString.call(tagType) === '[object Object]' && tagName in NAME_SPACE) {
+    } else if (typeof tagType === 'function') {
       // 命名空间标签
-      domExample = NAME_SPACE[tagName]();
+      domExample = tagType();
     } else {
       // 普通节点c
       domExample = document.createElement(tagType);
@@ -61,7 +61,7 @@ export default function createElement(vnode) {
               }
               break
             default:
-              domExample.setAttribute(prop, attributes[prop])
+              domExample.setAttribute(GLOBAL_ATTRIBUTES[prop] || prop, attributes[prop])
               break;
           }
         }
