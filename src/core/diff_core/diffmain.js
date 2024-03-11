@@ -58,7 +58,7 @@ export default function diffmain(oldvnode, newvnode) {
           return
         } else if (isComponent(newvnode) && isComponent(oldvnode)) {
           // 组件替换组件
-          if (newvnode[attrItem] !== oldvnode[attrItem]) {
+          if (newvnode[attrItem] !== oldvnode[attrItem] || newvnode['attributes']['id'] !== oldvnode['attributes']['id']) {
             if (!(newvnode['attributes'] && newvnode['attributes']['id'] && oldvnode['attributes'] && oldvnode['attributes']['id'])) {
               BvWarn(`动态替换 ${oldvnode[attrItem]} 组件和 ${newvnode[attrItem]} 组件,需要一个唯一不变的 id 属性, 当前组件 ${vm.name}`)
             }

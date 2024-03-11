@@ -9,7 +9,7 @@ class Bindview extends Component {
     }
     super(config)
   }
-  static version = "3.0.0"
+  static version = "3.0.3"
   static dispalyVer = true
 
   /**
