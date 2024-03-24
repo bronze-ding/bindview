@@ -1,6 +1,6 @@
 {
   "name": "bindview",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "description": "bindview.js是一个使用虚拟dom来创建真实dom,并实现了模型与视图绑定的javascript库",
   "main": "./src/index.js",
   "scripts": {
