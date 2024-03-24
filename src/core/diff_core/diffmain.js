@@ -137,9 +137,14 @@ export default function diffmain(oldvnode, newvnode) {
           }
         } else if (newvnode[attrItem].length < oldvnode[attrItem].length) {
           // 子节点长度减少
+
           let index = GetNewNodeLocation(newvnode[attrItem], oldvnode[attrItem])
-          for (let i = 0; i < index.length; i++) {
-            RemoveNode(oldvnode[attrItem][index[i]], vm)
+          for (let i = 0; i < oldvnode[attrItem].length; i++) {
+            if (index.includes(i)) {
+              RemoveNode(oldvnode[attrItem][i], vm)
+            } else {
+              vm._diffmain(oldvnode[attrItem][i], newvnode[attrItem][i])
+            }
           }
           index = null
         }
