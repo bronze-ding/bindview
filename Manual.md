@@ -775,3 +775,27 @@ import App from "./App"
 
 createApp(App, { title: '这是props' }).$mount("#Root")
 ```
+### 4. `propsType`
+`propsType` 用来约束父组件传递给子组件的数据的类型,需要传递两个参数 一个的 `props` , 一个是约束配置对象
+```jsx
+
+import { propsType } from "../../../bindview@3"
+
+export default function B(props) {
+  const { test } = propsType(props, {
+    test: ['object'],
+    a: 'array'
+  })
+
+  return {
+    name: 'A',
+    render() {
+      return (
+        <div>
+          <div>{test.get()}</div>
+        </div>
+      )
+    }
+  }
+}
+```
