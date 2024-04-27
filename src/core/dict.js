@@ -20,6 +20,20 @@ const HTML_TAGS = {
   area: 'area',
   article: 'article',
   aside: 'aside',
+  iframe: {
+    name: "iframe",
+    attributes: {
+      src: 'src',
+      width: 'width',
+      height: 'height',
+      sandbox: 'sandbox',
+      importance: 'importance',
+      name: 'name',
+      referrerpolicy: 'referrerpolicy',
+      allowfullscreen: 'allowfullscreen',
+      frameborder: 'frameborder'
+    }
+  },
   audio: {
     name: 'audio',
     attributes: {
