@@ -14,6 +14,10 @@ export default function DataProxy(data) {
       return res
     },
     set(target, key, value, receiver) {
+      // 判断新数据是否和旧数据相同
+      // 相同数据不需要设置
+      if (receiver[key] === value) return true
+
       let res = Reflect.set(target, key, value, receiver)
       // 数组改变时长度发生变化不更新
       if (Array.isArray(target) && key === 'length') return res
