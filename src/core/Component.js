@@ -11,6 +11,7 @@ import updateComponent from "./updateComponent"
 import Remove from "./Remove"
 import appendComponent from "./appendComponent"
 import mupdate from "./mupdate"
+import CreateAnUpdater from "./CreateAnUpdater"
 
 import addComponents from "./addComponents"
 import use from "./use"
@@ -77,5 +78,8 @@ Component.prototype.$appendComponent = appendComponent
 
 // 手动更新
 Component.prototype.$mupdate = mupdate
+
+// 创建更新器
+Component.prototype.$createm = CreateAnUpdater
 
 export default Component
