@@ -54,7 +54,7 @@ export default function Init(config) {
   // render 缓存
   vm._renderCache = null
 
-  // refs 回去真实dom
+  // refs 获取真实dom
   vm.refs = new Object()
 
   // 处理 methods 的 this

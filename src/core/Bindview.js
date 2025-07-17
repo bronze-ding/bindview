@@ -1,9 +1,11 @@
 import Component from "./Component"
 
+import config from "../../package.json"
+
 class Bindview extends Component {
   constructor(config) {
     if (Bindview.dispalyVer) {
-      console.log(`%c Bindview.js %c v${Bindview.version} `,
+      console.log(`%c bindview %c v${Bindview.version} `,
         'background: #35495e; padding: 1px; border-radius: 3px 0 0 3px; color: #fff;',
         'background: #41b883; padding: 1px; border-radius: 0 3px 3px 0; color: #fff',
         '\n',
@@ -11,7 +13,7 @@ class Bindview extends Component {
     }
     super(config)
   }
-  static version = "3.0.6"
+  static version = config.version ? config.version : '❓🤔'
   static dispalyVer = true
 
   /**
