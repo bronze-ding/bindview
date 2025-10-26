@@ -1,7 +1,6 @@
 import { NAME_SPACE, CUSTOM_ATTR, GLOBAL_ATTRIBUTES, HTML_TAGS, EVENT_HANDLERS } from './dict'
 import Vnode from "../tools/Vnode"
 import BvError from '../tools/BvError'
-import BvWarn from '../tools/BvWarn'
 import { isVnode, isVtext } from "../tools/isVnodeAndVtext"
 import Vtext from '../tools/Vtext'
 
@@ -72,7 +71,7 @@ export default function createElement(vnode) {
               attributes[prop].call(vm, this, e);
             })
           } else {
-            throw new BvError(`${JSON.stringify(attributes[prop])} 不正确`)
+            throw new BvError(`${prop} 事件值 (${JSON.stringify(attributes[prop])}) 不正确`, vm)
           }
         }
 
@@ -104,13 +103,14 @@ export default function createElement(vnode) {
         domExample.style = styles
       } else {
         Object.keys(styles).forEach(prop => {
+
           const value = styles[prop]
           if (typeof value === 'number') {
             domExample.style[prop] = `${value}px`
           } else if (typeof value === 'string') {
             domExample.style[prop] = value
           } else {
-            throw new Error(`[bindview] 应为 number 或 string ，但收到 "${typeof value}"`)
+            throw new BvError(`style ${prop} 的值应为 number 或 string `, vm)
           }
         })
       }

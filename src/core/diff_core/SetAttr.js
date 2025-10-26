@@ -23,7 +23,7 @@ export default function SetAttr(key, value, attr, vm) {
           vm.refs[ref] = el;
         }
       })(attr[value], dom);
-      BvWarn("动态修改 ref 属性,非常非常不推荐使用");
+      BvWarn("动态修改 ref 属性,非常非常不推荐使用", vm);
       break;
     case 'value':
       if ("value" in dom) {

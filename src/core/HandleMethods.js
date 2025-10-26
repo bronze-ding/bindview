@@ -13,7 +13,7 @@ export default function HandleMethods(methods, vm) {
       if (typeof methods[item] === 'function') {
         newMethods[item] = methods[item].bind(vm)
       } else {
-        throw new BvError(`methods 配置项只能为 Function 类型的你提供了一个 ${typeof methods[item]} 类型,当前组件 ${vm.name}`)
+        throw new BvError(`methods 配置项只能为 Function 类型,你提供了一个 ${typeof methods[item]} 类型`, vm)
       }
     }
     return newMethods

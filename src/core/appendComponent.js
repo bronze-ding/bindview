@@ -14,6 +14,6 @@ export default function appendComponent(ObjAndStr, Func) {
       vm._Components[item] = ObjAndStr[item]
     }
   } else {
-    BvWarn(`$appendComponent 参数错误,当前组件 ${vm.name}`)
+    BvWarn(`$appendComponent 参数错误`, vm)
   }
 }

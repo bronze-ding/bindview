@@ -45,14 +45,14 @@ export default function diffmain(oldvnode, newvnode) {
         if (isElementAndText(newvnode) && isComponent(oldvnode)) {
           // 节点替换组件
           if (!(oldvnode['attributes'] && oldvnode['attributes']['id'])) {
-            BvWarn(`${oldvnode[attrItem]} 作为动态组件应添加一个唯一的 id 属性,当前组件 ${vm.name}`)
+            BvWarn(`${oldvnode[attrItem]} 作为动态组件应添加一个唯一的 id 属性`, vm)
           }
           NodeReplacementComponent(oldvnode, newvnode, vm)
           return
         } else if (isElementAndText(oldvnode) && isComponent(newvnode)) {
           //组件替换节点
           if (!(newvnode['attributes'] && newvnode['attributes']['id'])) {
-            BvWarn(`${newvnode[attrItem]} 作为动态组件应添加一个唯一的 id 属性,当前组件 ${vm.name}`)
+            BvWarn(`${newvnode[attrItem]} 作为动态组件应添加一个唯一的 id 属性`, vm)
           }
           ComponentReplacementNode(oldvnode, newvnode, vm)
           return
@@ -60,7 +60,7 @@ export default function diffmain(oldvnode, newvnode) {
           // 组件替换组件
           if (newvnode[attrItem] !== oldvnode[attrItem] || ((newvnode['attributes'] && oldvnode['attributes']) ? newvnode['attributes']['id'] !== oldvnode['attributes']['id'] : false)) {
             if (!(newvnode['attributes'] && newvnode['attributes']['id'] && oldvnode['attributes'] && oldvnode['attributes']['id'])) {
-              BvWarn(`动态替换 ${oldvnode[attrItem]} 组件和 ${newvnode[attrItem]} 组件,需要一个唯一不变的 id 属性, 当前组件 ${vm.name}`)
+              BvWarn(`动态替换 ${oldvnode[attrItem]} 组件和 ${newvnode[attrItem]} 组件,需要一个唯一不变的 id 属性`, vm)
             }
             ComponentReplacementComponent(oldvnode, newvnode, vm)
           }
@@ -152,7 +152,7 @@ export default function diffmain(oldvnode, newvnode) {
       case "key":
         // 处理 Key 一般不会发生变化，如果有变化及发生错误
         if (oldvnode[attrItem] !== newvnode[attrItem]) {
-          throw new BvError("key 属性发生变化,及出现严重错误请排查")
+          throw new BvError("key 属性发生变化,及出现严重错误请排查", vm)
         }
     }
   }

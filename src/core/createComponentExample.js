@@ -61,7 +61,7 @@ export default function createComponentExample(vnode) {
     if (props.id && typeof props.id === 'string') {
       ComponentExample._key = props.id
       if (!isUUID(props.id)) {
-        BvWarn(`组件 ${elementName} 的 id: ${props.id} 应符合UUID规范,当前组件为 ${vm.name}`)
+        BvWarn(`组件 ${elementName} 的 id: ${props.id} 应符合UUID规范`, vm)
       }
     }
 
@@ -76,12 +76,12 @@ export default function createComponentExample(vnode) {
   } else {
     // 使用未注册组件生成警告
     let replace = document.createElement("div")
-    replace.innerText = `[Bindview] Components 中没有注册 "${elementName}" 组件,当前组件 "${vm.name}"`
+    replace.innerText = `[Bindview]\n 当前组件: ${vm.name}\n Components 中没有注册 "${elementName}" 组件"`
     replace.className = 'Warn'
-    replace.style.backgroundColor = "yellow"
+    replace.style.backgroundColor = "#fd1d1dc2"
     replace.style.border = "1px #555 solid "
     replace.style.padding = '5px'
-    BvWarn(`Components 中没有注册 "${elementName}" 组件,当前组件 "${vm.name}"`)
+    BvWarn(`Components 中没有注册 "${elementName}" 组件`, vm)
     return replace
   }
 }

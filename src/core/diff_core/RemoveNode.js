@@ -29,7 +29,7 @@ export default function RemoveNode(vnode, vm) {
   const { key } = vnode
   if (isComponent(vnode)) {
     const component = vm._KeyMapComponent.has(key) ? vm._KeyMapComponent.get(key) : null
-    if (component === null) throw new BvError(`无法从组件映射表中获取到 key 为 ${key} 的 ${vnode['elementName']}的实例,当前组件为 ${vm.name}`)
+    if (component === null) throw new BvError(`无法从组件映射表中获取到 key 为 ${key} 的 ${vnode['elementName']}的实例`, vm)
     component.$remove(vm)
   } else if (isElementAndText(vnode)) {
     const children = vnode.children || []

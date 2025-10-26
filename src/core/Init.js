@@ -48,7 +48,7 @@ export default function Init(config) {
   } else if (typeof config.data === 'function' || Object.prototype.toString.call(config.data) === '[object Object]') {
     vm.data = vm._DataProxy(typeof config.data === 'function' ? config.data() : config.data)
   } else {
-    throw new BvError(`data 配置项需要一个 Object 或 Function 类型,你提供了一个 ${typeof config.data} 类型`)
+    throw new BvError(`data 配置项需要一个 Object 或 Function 类型,你提供了一个 ${typeof config.data} 类型`, vm)
   }
 
   // render 缓存
@@ -83,7 +83,7 @@ export default function Init(config) {
     vm.vnode = Render(config.render.call(vm, h), vm)
     vm._renderCache = () => Render(config.render.call(vm, h), vm)
   } else {
-    throw new BvError(`render 配置项需要一个 Function 类型,你提供了一个 ${typeof config.render} 类型`)
+    throw new BvError(`render 配置项需要一个 Function 类型,你提供了一个 ${typeof config.render} 类型`, vm)
   }
 
   // 渲染 UI

@@ -26,6 +26,6 @@ export default function Remove(ComponentVM) {
   if (ComponentVM instanceof Component) {
     ComponentVM._KeyMapComponent.delete(vm._key)
   } else if (vm._isComponent) {
-    throw new BvError(`手动卸载 ${vm.name} 组件需要一个父组件实例参数`)
+    throw new BvError(`手动卸载 ${vm.name} 组件需要一个父组件实例参数`, vm)
   }
 }

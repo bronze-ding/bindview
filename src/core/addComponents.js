@@ -31,7 +31,7 @@ export default function addComponents(ComponentsName, Components) {
           configurable: true
         });
       } else {
-        BvWarn(`组件或者组件名不正确`);
+        BvWarn(`Components，组件或者组件名不正确`);
       }
       break
     default:

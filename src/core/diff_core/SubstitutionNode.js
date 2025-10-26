@@ -24,7 +24,7 @@ function NodeReplacementNode(oldvnode, newvnode, vm) {
     });
 
   } else {
-    throw new BvError(`无法获取到 key 为 ${key}的实例,发生错误请检查`)
+    throw new BvError(`无法获取到 key 为 ${key}的实例,发生错误请检查`, vm)
   }
 }
 
