@@ -1,51 +1,70 @@
 import BvError from "./BvError"
 import BvWarn from "./BvWarn"
 
-function type(item) {
-  if (Array.isArray(item)) {
-    return "array"
-  }
+// 类型判断工具函数
+const type = (item) => Array.isArray(item) ? "array" : typeof item
 
-  return typeof item
+// 合法基础类型正则（全局缓存提升性能）
+const VALID_TYPE_REGEX = /^(?:string|number|boolean|symbol|undefined|object|function|array)$/
+
+/**
+ * 验证props类型配置有效性
+ * @param {string} typeName - 待验证类型名
+ * @param {string} componentName - 组件名
+ * @throws {BvError} 非法类型时抛出
+ */
+const validateConfigType = (typeName, componentName) => {
+  if (!VALID_TYPE_REGEX.test(typeName)) {
+    throw new BvError(`propsType config 类型定义非法: ${typeName} (组件: ${componentName})`)
+  }
 }
 
 /**
- * props 类型约束
- * @param {Object} props props
- * @param {Object} config 类型配置
- * @returns {Object} props props
- * @throws {String} 组件名
+ * 类型验证主函数
+ * @param {Object} props - 组件属性对象
+ * @param {Object} config - 类型约束配置
+ * @param {string} [comName="未设置"] - 组件名（可选）
+ * @returns {Object} 验证后的props
+ * @throws {BvError} 配置错误时抛出
  */
-export default function propsType(props, config, comName) {
-  const componentName = typeof comName === 'string' ? comName : '未设置'
-
-  if (Object.keys(config).length === 0) throw new BvError("propsType config 不能为空,当前组件：" + componentName)
-
-  const z = /^(?:string|number|boolean|symbol|undefined|object|function|array)$/
-
-  for (let i in config) {
-    if (props[i] === undefined) {
-      BvWarn(`props 中无 ${i} 属性,当前组件：${componentName}`)
-      continue
-    }
-    if (Array.isArray(config[i])) {
-      for (let j of config[i]) {
-        if (!z.test(j)) {
-          throw new BvError(`propsType config 的 ${i} 属性 ${j} 类型不正确,当前组件：${componentName}`)
-        }
-      }
-      if (config[i].indexOf(type(props[i])) === -1) {
-        BvWarn(`props 中 ${i} 属性类型应该为 ${config[i]},当前组件：${componentName}`)
-        continue
-      }
-    } else if (type(config[i]) === 'string') {
-      if (!z.test(config[i])) throw new BvError(`propsType config 的 ${i} 属性 ${config[i]} 类型不正确,当前组件：${componentName}`)
-      if (type(props[i]) !== config[i]) {
-        BvWarn(`props 中 ${i} 属性类型应该为 ${config[i]},当前组件：${componentName}`)
-        continue
-      }
-    }
+export default function propsType(props, config, comName = "未设置") {
+  // 配置空校验
+  if (Object.keys(config).length === 0) {
+    throw new BvError("propsType config 不能为空 (组件: " + comName + ")")
   }
+
+  Object.entries(config).forEach(([propName, typeConfig]) => {
+    // 缺失属性警告
+    if (props[propName] === undefined) {
+      BvWarn(`props 缺失属性: ${propName} (组件: ${comName})`)
+      return
+    }
+
+    // 多类型校验场景
+    if (Array.isArray(typeConfig)) {
+      // 配置类型校验
+      typeConfig.forEach(type => validateConfigType(type, comName))
+
+      // 实际类型校验
+      const actualType = type(props[propName])
+      if (!typeConfig.includes(actualType)) {
+        BvWarn(`属性 ${propName} 类型应为 [${typeConfig.join('/')}]，实际为 ${actualType} (组件: ${comName})`)
+      }
+      return
+    }
+
+    // 单类型校验场景
+    if (typeof typeConfig === 'string') {
+      // 配置类型校验
+      validateConfigType(typeConfig, comName)
+
+      // 实际类型校验
+      const actualType = type(props[propName])
+      if (actualType !== typeConfig) {
+        BvWarn(`属性 ${propName} 类型应为 ${typeConfig}，实际为 ${actualType} (组件: ${comName})`)
+      }
+    }
+  })
 
   return props
 }
