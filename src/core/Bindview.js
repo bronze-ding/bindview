@@ -1,10 +1,12 @@
 import Component from "./Component"
+import { __DEV__ } from "../tools/devMode"
 
 import config from "../../package.json"
 
 class Bindview extends Component {
   constructor(config) {
-    if (Bindview.dispalyVer) {
+    // 版本横幅仅在开发模式打印(P2.6),生产构建 __DEV__ 为 false 自动裁剪
+    if (__DEV__ && Bindview.displayVer) {
       console.log(`%c bindview %c v${Bindview.version} `,
         'background: #35495e; padding: 1px; border-radius: 3px 0 0 3px; color: #fff;',
         'background: #41b883; padding: 1px; border-radius: 0 3px 3px 0; color: #fff',
@@ -14,7 +16,7 @@ class Bindview extends Component {
     super(config)
   }
   static version = config.version ? config.version : '❓🤔'
-  static dispalyVer = true
+  static displayVer = true
 
   /**
    * 挂载全局组件

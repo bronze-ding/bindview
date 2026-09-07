@@ -4,6 +4,7 @@ import BvError from '../tools/BvError'
 import { isVnode, isVtext } from "../tools/isVnodeAndVtext"
 import Vtext from '../tools/Vtext'
 import { setDomEventHandler } from './eventBinding'
+import { registerDom } from './nodeRegistry'
 
 /**
  * 将虚拟DOM装换为真实DOM
@@ -35,8 +36,8 @@ export default function createElement(vnode) {
       domExample = document.createElement(tagType);
     }
 
-    // 添加dom映射
-    vm._KeyMapDom.set(key, domExample);
+    // 添加dom映射(统一注册入口, P2.3)
+    registerDom(vm, key, domExample);
 
     if (tagType !== void 0) {
       // 对属性进行操作
@@ -131,7 +132,7 @@ export default function createElement(vnode) {
     const { text, key } = vnode
     let domExample = null
     domExample = document.createTextNode(text)
-    vm._KeyMapDom.set(key, domExample);
+    registerDom(vm, key, domExample) // 统一注册入口(P2.3)
 
     return domExample
   }

@@ -17,6 +17,7 @@ import addComponents from "./addComponents"
 import use from "./use"
 import proto from "./proto"
 import { nextTick, flushJobs } from "./scheduler"
+import { registryStats } from "./nodeRegistry"
 
 /**
  * Component构造函数
@@ -88,5 +89,8 @@ Component.prototype.$nextTick = nextTick
 
 // 立即同步执行队列中的所有更新(测试 / 调试用)
 Component.prototype.$flush = flushJobs
+
+// 调试统计:返回 _KeyMapDom / _KeyMapComponent 的数量与 key 列表(P2.3)
+Component.prototype.$registryStats = registryStats
 
 export default Component

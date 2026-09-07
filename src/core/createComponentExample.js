@@ -3,6 +3,7 @@ import Vtext from "../tools/Vtext"
 import isUUID from "../tools/isUUID"
 import { isVnode, isVtext } from "../tools/isVnodeAndVtext"
 import Component from "./Component"
+import { registerComponent } from "./nodeRegistry"
 
 /**
  * 插槽预处理
@@ -67,8 +68,8 @@ export default function createComponentExample(vnode) {
 
     vnode.key = ComponentExample._key // 将 组件的虚拟dom key 和 组件的 key 保持一致，方便后续增删获取组件实例
 
-    // 添加到组件映射表
-    vm._KeyMapComponent.set(ComponentExample._key, ComponentExample)
+    // 添加到组件映射表(统一注册入口, P2.3)
+    registerComponent(vm, ComponentExample._key, ComponentExample)
 
     ComponentExample._isComponent = true
 
