@@ -1,5 +1,6 @@
 import BvWarn from "../tools/BvWarn"
 import BvError from '../tools/BvError'
+import { assertDOMEnvironment } from "../tools/domEnv"
 import Render from './Render'
 import HandleMethods from "./HandleMethods"
 import SignupComponents from "./SignupComponents"
@@ -13,6 +14,9 @@ import cloneVnode from "../tools/cloneVnode"
  */
 export default function Init(config) {
   const vm = this
+
+  // 环境守卫(P2.2):bindview 依赖浏览器 DOM,SSR/Node 下给出明确错误
+  assertDOMEnvironment('组件初始化')
 
   // 配置生命周期
   vm.life = Object.prototype.toString.call(config.life) === '[object Object]' ? config.life : null;

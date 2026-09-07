@@ -1,9 +1,15 @@
+import BvError from "../tools/BvError";
+import { assertDOMEnvironment } from "../tools/domEnv"
+
 /**
  * 挂载组件实例
- * @param {*} el 
- * @returns 
+ * @param {*} el
+ * @returns
  */
 export default function mount(el) {
+  // 环境守卫(P2.2)
+  assertDOMEnvironment('$mount')
+
   if (typeof el === "string" || el instanceof HTMLElement) {
     let root = el instanceof HTMLElement ? el :
       document.querySelector(el) === null ? (() => { throw new BvError(`无法获取到 DOM 选择器的 DOM 实例 ${el}, 当前组件为 ${this.name}`) })() : document.querySelector(el);

@@ -1,6 +1,7 @@
 import BvError from "../../tools/BvError"
 import { HTML_TAGS, NAME_SPACE } from "../dict"
 import { isVnode, isVtext } from "../../tools/isVnodeAndVtext"
+import { removeAllDomEventHandlers } from "../eventBinding"
 
 // 判断是不是节点
 const isElementAndText = (vnode) => {
@@ -39,7 +40,9 @@ export default function RemoveNode(vnode, vm) {
   } else if (isElementAndText(vnode)) {
     const children = vnode.children || []
     if (vm._KeyMapDom.has(key)) { // 判断 dom 映射表中有没有
-      vm._KeyMapDom.get(key).remove() // 获取 DOM 并移除
+      const domNode = vm._KeyMapDom.get(key)
+      removeAllDomEventHandlers(domNode) // 移除节点上绑定的事件,防止监听泄漏(P2.4)
+      domNode.remove() // 获取 DOM 并移除
       vm._KeyMapDom.delete(key) // 删除映射表中的映射记录
 
       children.forEach(childrenVnode => {// 移除子节点

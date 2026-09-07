@@ -4,6 +4,7 @@ import { NodeReplacementNode, ComponentReplacementComponent, NodeReplacementComp
 import SetNodeStyle from "./SetNodeStyle";
 import { AddNode, ReplaceList, PatchChildren } from "./ListNodeOperation"
 import SetAttr from "./SetAttr"
+import { setDomEventHandler, removeDomEventHandler } from "../eventBinding"
 import BvError from "../../tools/BvError";
 import Vnode from "../../tools/Vnode";
 import GetNewNodeLocation from "./GetNewNodeLocation";
@@ -107,6 +108,22 @@ export default function diffmain(oldvnode, newvnode) {
           if (JSON.stringify(oldStyle) !== JSON.stringify(newStyle)) {
             SetNodeStyle(oldStyle, newStyle, oldvnode.key, vm)
           }
+
+          // 事件处理(P2.4):diff 阶段支持 新增 / 更新 / 移除 处理器
+          const eventProps = new Set()
+          for (let p in oldAttrs) if (p in EVENT_HANDLERS) eventProps.add(p)
+          for (let p in newAttrs) if (p in EVENT_HANDLERS) eventProps.add(p)
+          eventProps.forEach(prop => {
+            const type = EVENT_HANDLERS[prop]
+            const newFn = typeof newAttrs[prop] === 'function' ? newAttrs[prop] : null
+            const oldFn = typeof oldAttrs[prop] === 'function' ? oldAttrs[prop] : null
+            if (newFn === oldFn) return // 未变化
+            if (newFn) {
+              setDomEventHandler(dom, vm, type, newFn)
+            } else {
+              removeDomEventHandler(dom, type)
+            }
+          })
 
           // 更新 / 新增的属性
           for (let attrName in newAttrs) {

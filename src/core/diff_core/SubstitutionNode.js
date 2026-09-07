@@ -2,6 +2,7 @@ import BvError from "../../tools/BvError";
 import RemoveNode from "./RemoveNode"
 import Vnode from "../../tools/Vnode";
 import { isVnode, isVtext } from "../../tools/isVnodeAndVtext"
+import { removeAllDomEventHandlers } from "../eventBinding"
 
 /**
  * 节点替换节点
@@ -18,6 +19,7 @@ function NodeReplacementNode(oldvnode, newvnode, vm) {
     const parentNode = oldDom.parentNode // 获取父节点
     parentNode.replaceChild(newDom, oldDom) //替换节点
 
+    removeAllDomEventHandlers(oldDom) // 释放被替换节点上的事件监听(P2.4)
     oldDom.remove() // 移除旧节点实例
     children.forEach(childrenVnode => { // 移除旧节点
       RemoveNode(childrenVnode, vm)

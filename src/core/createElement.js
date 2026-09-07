@@ -3,6 +3,7 @@ import Vnode from "../tools/Vnode"
 import BvError from '../tools/BvError'
 import { isVnode, isVtext } from "../tools/isVnodeAndVtext"
 import Vtext from '../tools/Vtext'
+import { setDomEventHandler } from './eventBinding'
 
 /**
  * 将虚拟DOM装换为真实DOM
@@ -67,9 +68,8 @@ export default function createElement(vnode) {
 
         if (prop in EVENT_HANDLERS) {
           if (attributes[prop] instanceof Function) {
-            domExample.addEventListener(EVENT_HANDLERS[prop], function (e) {
-              attributes[prop].call(vm, this, e);
-            })
+            // 通过事件绑定工具注册(P2.4):后续 diff 阶段可更新 / 移除处理器
+            setDomEventHandler(domExample, vm, EVENT_HANDLERS[prop], attributes[prop])
           } else {
             throw new BvError(`${prop} 事件值 (${JSON.stringify(attributes[prop])}) 不正确`, vm)
           }
