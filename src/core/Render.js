@@ -20,6 +20,16 @@ const isComponent = (vnode) => {
  * @returns {Vnode} new Vnode
  */
 export default function Render(vdom, vm) {
+  // 顶层返回数组(片段):包装为布局透明的容器节点,交由统一 vnode 流程处理
+  // 避免数组被 JSON.stringify 渲染成文本
+  if (Array.isArray(vdom)) {
+    return Render({
+      elementName: 'div',
+      attributes: { style: { display: 'contents' } },
+      children: vdom
+    }, vm)
+  }
+
   // 判断 vdom 是字符串还是数值, 创建文本类型的虚拟节点
   if (typeof vdom === 'string' || typeof vdom === 'number') {
     return new Vtext(vdom)

@@ -1,5 +1,5 @@
 import BvWarn from "../../tools/BvWarn";
-import { EVENT_HANDLERS } from "../dict"
+import { EVENT_HANDLERS, GLOBAL_ATTRIBUTES } from "../dict"
 
 /**
  * 更新属性
@@ -34,7 +34,10 @@ export default function SetAttr(key, value, attr, vm) {
       break
     default:
       if (!(value in EVENT_HANDLERS)) {
-        dom.setAttribute(value, attr[value]);
+        // 与 createElement 建节点时保持一致:将 camelCase 属性名映射为真实 HTML 属性名
+        // 例如 className -> class,避免 diff 更新时写入无效的 "className" 属性
+        const realAttrName = GLOBAL_ATTRIBUTES[value] || value
+        dom.setAttribute(realAttrName, attr[value]);
       }
       break
   }

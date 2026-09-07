@@ -1,8 +1,8 @@
-import { HTML_TAGS, NAME_SPACE } from "../dict"
+import { HTML_TAGS, NAME_SPACE, GLOBAL_ATTRIBUTES, EVENT_HANDLERS } from "../dict"
 import { isVnode, isVtext } from "../../tools/isVnodeAndVtext"
 import { NodeReplacementNode, ComponentReplacementComponent, NodeReplacementComponent, ComponentReplacementNode } from "./SubstitutionNode"
-import SetNodeStyle from "./setNodeStyle";
-import { AddNode, ReplaceList, InsertNode } from "./ListNodeOperation"
+import SetNodeStyle from "./SetNodeStyle";
+import { AddNode, ReplaceList, PatchChildren } from "./ListNodeOperation"
 import SetAttr from "./SetAttr"
 import BvError from "../../tools/BvError";
 import Vnode from "../../tools/Vnode";
@@ -26,6 +26,13 @@ const isComponent = (vnode) => {
   } else if (isVtext(vnode)) {
     return false
   }
+}
+
+// 判断是否为一个“纯 keyed 列表”(所有子节点都是携带 key 属性的 vnode)
+// 满足条件时使用 key 对齐算法以支持插入 / 删除 / 重排
+const isKeyedList = (children) => {
+  if (!Array.isArray(children) || children.length === 0) return false
+  return children.every(child => isVnode(child) && child.attributes && child.attributes.key !== void 0)
 }
 
 /**
@@ -83,72 +90,85 @@ export default function diffmain(oldvnode, newvnode) {
           }
         }
         break
-      case "attributes":
+      case "attributes": {
         // 处理属性
+        // 新旧属性统一按空对象处理,避免旧节点 attributes 为 null 时访问崩溃
+        const oldAttrs = (oldvnode[attrItem] === null || oldvnode[attrItem] === void 0) ? {} : oldvnode[attrItem]
+        const newAttrs = (newvnode[attrItem] === null || newvnode[attrItem] === void 0) ? {} : newvnode[attrItem]
 
-        // 将 attr 转换为 string 进行粗略比较
-        let oldattrstring = JSON.stringify(oldvnode[attrItem])
-        let newattrstring = JSON.stringify(newvnode[attrItem])
+        // 组件节点不在此处处理属性
+        if (isComponent(newvnode) && isComponent(oldvnode)) continue
 
-        if (isComponent(newvnode) && isComponent(oldvnode)) continue // 该节点如果为组件节点不进行操作
-
-        if ((oldattrstring !== newattrstring) && newvnode[attrItem]) {
-          if (newvnode[attrItem]['style']) {
-            // 处理css样式
-            SetNodeStyle(oldvnode[attrItem]['style'], newvnode[attrItem]['style'], newvnode.key, vm)
+        const dom = vm._KeyMapDom.get(oldvnode.key)
+        if (dom instanceof Element) {
+          // 处理 css 样式(新增 / 修改 / 删除由 SetNodeStyle 统一处理)
+          const oldStyle = oldAttrs.style === void 0 ? null : oldAttrs.style
+          const newStyle = newAttrs.style === void 0 ? null : newAttrs.style
+          if (JSON.stringify(oldStyle) !== JSON.stringify(newStyle)) {
+            SetNodeStyle(oldStyle, newStyle, oldvnode.key, vm)
           }
 
-          for (let attrName in newvnode[attrItem]) {
-            if (attrName === 'style') continue
-            if (oldvnode[attrItem][attrName] !== newvnode[attrItem][attrName]) {
-              SetAttr(oldvnode.key, attrName, newvnode[attrItem], vm)
+          // 更新 / 新增的属性
+          for (let attrName in newAttrs) {
+            if (attrName === 'style' || attrName === 'ref' || attrName in EVENT_HANDLERS) continue
+            if (oldAttrs[attrName] !== newAttrs[attrName]) {
+              SetAttr(oldvnode.key, attrName, newAttrs, vm)
+            }
+          }
+
+          // 删除旧属性中存在、而新属性中已不存在的属性
+          for (let attrName in oldAttrs) {
+            if (attrName === 'style' || attrName === 'ref' || attrName in EVENT_HANDLERS) continue
+            if (!(attrName in newAttrs)) {
+              const realAttrName = GLOBAL_ATTRIBUTES[attrName] || attrName
+              dom.removeAttribute(realAttrName)
+              if (attrName === 'value' && 'value' in dom) dom.value = ''
             }
           }
         }
-        // 释放内存
-        oldattrstring = newattrstring = null
         break
-      case "children":
+      }
+      case "children": {
         // 处理子节点
         if (isComponent(newvnode) && isComponent(oldvnode)) continue // 该节点如果为组件节点不进行操作
 
-        if (newvnode[attrItem].length === oldvnode[attrItem].length) {
-          // 子节点长度不变
-          for (let i = 0; i < newvnode[attrItem].length; i++) {
-            vm._diffmain(oldvnode[attrItem][i], newvnode[attrItem][i])
-          }
-        } else if (newvnode[attrItem].length > oldvnode[attrItem].length) {
-          // 子节点长度增加
-          if (oldvnode[attrItem].length === 0) {
-            // 如果旧节点等于0,直接添加节点
-            AddNode(newvnode, newvnode[attrItem], vm)
-          } else if (
-            (
-              newvnode[attrItem][0]['attributes'] && newvnode[attrItem][0]['attributes']['key'] !== void 0
-            ) && (
-              newvnode[attrItem][newvnode[attrItem].length - 1]['attributes'] && newvnode[attrItem][newvnode[attrItem].length - 1]['attributes']['key'] !== void 0
-            )
-          ) {
-            // 带有 key 的列表,通过比较第一个节点和最后一个节点是否有 key 属性
-            InsertNode(oldvnode[attrItem], newvnode[attrItem], oldvnode, vm)
-          } else {
-            // 没有 key 的列表
-            ReplaceList(oldvnode, newvnode[attrItem], vm)
-          }
-        } else if (newvnode[attrItem].length < oldvnode[attrItem].length) {
-          // 子节点长度减少
+        const oldChildren = oldvnode[attrItem] || []
+        const newChildren = newvnode[attrItem] || []
 
-          let index = GetNewNodeLocation(newvnode[attrItem], oldvnode[attrItem])
-          for (let i = 0; i < oldvnode[attrItem].length; i++) {
+        // 纯 keyed 列表统一走 key 对齐算法(支持插入 / 删除 / 重排,并复用真实 DOM)
+        if (isKeyedList(newChildren)) {
+          PatchChildren(oldChildren, newChildren, oldvnode, vm)
+          break
+        }
+
+        if (newChildren.length === oldChildren.length) {
+          // 子节点长度不变,按索引逐一比较
+          for (let i = 0; i < newChildren.length; i++) {
+            vm._diffmain(oldChildren[i], newChildren[i])
+          }
+        } else if (newChildren.length > oldChildren.length) {
+          // 子节点长度增加
+          if (oldChildren.length === 0) {
+            // 旧节点为空,直接整体添加
+            AddNode(newvnode, newChildren, vm)
+          } else {
+            // 无 key 列表:整体重建替换
+            ReplaceList(oldvnode, newChildren, vm)
+          }
+        } else if (newChildren.length < oldChildren.length) {
+          // 子节点长度减少
+          let index = GetNewNodeLocation(newChildren, oldChildren)
+          for (let i = 0; i < oldChildren.length; i++) {
             if (index.includes(i)) {
-              RemoveNode(oldvnode[attrItem][i], vm)
-            } else {
-              vm._diffmain(oldvnode[attrItem][i], newvnode[attrItem][i])
+              RemoveNode(oldChildren[i], vm)
+            } else if (i < newChildren.length) {
+              vm._diffmain(oldChildren[i], newChildren[i])
             }
           }
           index = null
         }
         break
+      }
       case "key":
         // 处理 Key 一般不会发生变化，如果有变化及发生错误
         if (oldvnode[attrItem] !== newvnode[attrItem]) {

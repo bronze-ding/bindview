@@ -174,8 +174,76 @@ function InsertNode(oldvnodeChildren, newvnodeChildren, Parent, vm) {
   }
 }
 
+/**
+ * 带 key 列表的统一对齐算法
+ * 支持节点的 插入 / 删除 / 重排,通过 key 复用已有真实 DOM(不重建),
+ * 从而保留输入状态、减少 DOM 操作;随后对复用的节点做内容级 diff
+ * @param {Array<Vnode|Vtext>} oldChildren 旧子节点(内部 key 已与新节点同步)
+ * @param {Array<Vnode|Vtext>} newChildren 新子节点
+ * @param {Vnode} Parent 父虚拟节点(用于获取父级真实 DOM)
+ * @param {VM} vm
+ */
+function PatchChildren(oldChildren, newChildren, Parent, vm) {
+  const parentDom = getVnodeAndComponentDom(Parent, vm)
+  if (parentDom === null || parentDom === void 0) return
+
+  // 以内部 key 索引旧子节点
+  const oldByKey = new Map()
+  oldChildren.forEach(child => {
+    oldByKey.set(child.key, child)
+  })
+
+  const newKeys = new Set()
+  newChildren.forEach(child => {
+    newKeys.add(child.key)
+  })
+
+  // 不在新列表中的旧子节点需要被移除
+  const removedOld = oldChildren.filter(child => !newKeys.has(child.key))
+
+  // 按照新顺序移动 / 新增真实 DOM
+  let anchor = null
+  newChildren.forEach(newChild => {
+    const oldChild = oldByKey.get(newChild.key)
+    let dom = null
+
+    // 优先复用已存在的真实 DOM(可能来自旧节点)
+    if (oldChild !== void 0) {
+      dom = getVnodeAndComponentDom(oldChild, vm)
+    }
+
+    // 没有可复用的 DOM,则新建节点/组件
+    if (dom === null || dom === void 0 || !(dom instanceof Node)) {
+      dom = createDomAndComponent(newChild, vm)
+    }
+    if (dom === null || dom === void 0) return
+
+    if (anchor === null) {
+      if (parentDom.firstChild !== dom) parentDom.insertBefore(dom, parentDom.firstChild)
+    } else {
+      const next = anchor.nextSibling
+      if (next !== dom) parentDom.insertBefore(dom, next)
+    }
+    anchor = dom
+  })
+
+  // 移除多余旧节点(同时清理父级映射,避免泄漏)
+  removedOld.forEach(oldChild => {
+    RemoveNode(oldChild, vm)
+  })
+
+  // 对复用的节点做内容级 diff(此时新旧 key 一致,不会触发 key 冲突)
+  newChildren.forEach(newChild => {
+    const oldChild = oldByKey.get(newChild.key)
+    if (oldChild !== void 0) {
+      vm._diffmain(oldChild, newChild)
+    }
+  })
+}
+
 export {
   AddNode,
   ReplaceList,
-  InsertNode
+  InsertNode,
+  PatchChildren
 }

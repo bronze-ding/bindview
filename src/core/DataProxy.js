@@ -18,9 +18,19 @@ export default function DataProxy(data) {
       // 相同数据不需要设置
       if (receiver[key] === value) return true
 
+      // 记录旧长度(仅对数组 length 操作有意义)
+      const oldLength = (Array.isArray(target) && key === 'length') ? target.length : null
+
       let res = Reflect.set(target, key, value, receiver)
-      // 数组改变时长度发生变化不更新
-      if (Array.isArray(target) && key === 'length') return res
+
+      // 数组 length:长度真实发生变化时才触发更新
+      // 支持 arr.length = 0 等显式清空操作也能驱动视图刷新
+      if (oldLength !== null) {
+        if (oldLength === value) return res
+        vm._Update()
+        return res
+      }
+
       vm._Update()
       return res
     },

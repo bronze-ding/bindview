@@ -31,6 +31,11 @@ export default function RemoveNode(vnode, vm) {
     const component = vm._KeyMapComponent.has(key) ? vm._KeyMapComponent.get(key) : null
     if (component === null) throw new BvError(`无法从组件映射表中获取到 key 为 ${key} 的 ${vnode['elementName']}的实例`, vm)
     component.$remove(vm)
+    // $remove 只清理了组件自身的映射,这里清理父组件 _KeyMapDom 中
+    // 残留的组件根 DOM 记录,避免悬空引用与内存泄漏
+    if (vm._KeyMapDom.has(key)) {
+      vm._KeyMapDom.delete(key)
+    }
   } else if (isElementAndText(vnode)) {
     const children = vnode.children || []
     if (vm._KeyMapDom.has(key)) { // 判断 dom 映射表中有没有
