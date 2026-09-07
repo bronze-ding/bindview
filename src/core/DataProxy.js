@@ -1,3 +1,5 @@
+import { queueJob } from "./scheduler"
+
 /**
  * 数据代理
  * @param {*} data 代理数据
@@ -27,18 +29,18 @@ export default function DataProxy(data) {
       // 支持 arr.length = 0 等显式清空操作也能驱动视图刷新
       if (oldLength !== null) {
         if (oldLength === value) return res
-        vm._Update()
+        queueJob(vm) // 通过调度器合并更新
         return res
       }
 
-      vm._Update()
+      queueJob(vm) // 通过调度器合并更新(同一任务内多次写入只会执行一次 diff)
       return res
     },
     deleteProperty(target, propKey) {
       let success = Reflect.deleteProperty(target, propKey);
 
       if (success) {
-        vm._Update()
+        queueJob(vm) // 通过调度器合并更新
       } else {
         console.error(`删除属性 ${propKey} 失败`);
       }

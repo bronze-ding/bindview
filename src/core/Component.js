@@ -16,6 +16,7 @@ import CreateAnUpdater from "./CreateAnUpdater"
 import addComponents from "./addComponents"
 import use from "./use"
 import proto from "./proto"
+import { nextTick, flushJobs } from "./scheduler"
 
 /**
  * Component构造函数
@@ -76,10 +77,16 @@ Component.prototype._updateComponent = updateComponent
 // 追加 组件
 Component.prototype.$appendComponent = appendComponent
 
-// 手动更新
+// 手动更新(通过调度器合并,批量执行)
 Component.prototype.$mupdate = mupdate
 
 // 创建更新器
 Component.prototype.$createm = CreateAnUpdater
+
+// DOM 更新完成后回调 / resolve
+Component.prototype.$nextTick = nextTick
+
+// 立即同步执行队列中的所有更新(测试 / 调试用)
+Component.prototype.$flush = flushJobs
 
 export default Component
