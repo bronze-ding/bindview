@@ -1,7 +1,7 @@
-import dcopy from "deep-copy"
 import Vnode from "../tools/Vnode";
 import Vtext from "../tools/Vtext";
 import { isVnode, isVtext, XOR } from "../tools/isVnodeAndVtext"
+import cloneVnode from "../tools/cloneVnode"
 
 
 /**
@@ -76,8 +76,8 @@ export default function Update() {
   // 调用 diff
   vm._diffmain(vm._oldvnode, vm.vnode)
 
-  // diff 更新完后将新的 vnode 拷贝给旧的 vnode
-  vm._oldvnode = dcopy(vm.vnode)
+  // diff 更新完后将新的 vnode 轻量克隆给旧的 vnode(替代第三方 deep-copy, P1.3)
+  vm._oldvnode = cloneVnode(vm.vnode)
 
   // 更新子组件
   vm._updateComponent()

@@ -4,8 +4,8 @@ import Render from './Render'
 import HandleMethods from "./HandleMethods"
 import SignupComponents from "./SignupComponents"
 import h from './h'
-import dcopy from 'deep-copy'
 import createID from "../tools/createID"
+import cloneVnode from "../tools/cloneVnode"
 
 /**
  * Bindview 初始化函数
@@ -80,8 +80,10 @@ export default function Init(config) {
 
   //* 判断 reader 函数
   if (typeof config.render === 'function') {
-    vm.vnode = Render(config.render.call(vm, h), vm)
-    vm._renderCache = () => Render(config.render.call(vm, h), vm)
+    // 收敛为单一渲染入口:初始化只调用一次 render(P1.6)
+    const renderOnce = () => Render(config.render.call(vm, h), vm)
+    vm.vnode = renderOnce()
+    vm._renderCache = renderOnce // 后续数据驱动更新复用同一入口
   } else {
     throw new BvError(`render 配置项需要一个 Function 类型,你提供了一个 ${typeof config.render} 类型`, vm)
   }
@@ -89,8 +91,8 @@ export default function Init(config) {
   // 渲染 UI
   vm._Rendering(vm.vnode)
 
-  // 旧节点
-  vm._oldvnode = dcopy(vm.vnode)
+  // 旧节点:轻量克隆,替代第三方 deep-copy(P1.3)
+  vm._oldvnode = cloneVnode(vm.vnode)
 
 
   // 生命周期调用 安装后
