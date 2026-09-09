@@ -9,7 +9,7 @@ export default function proto(string, obj) {
     for (let item in string) {
       Component.prototype[item] = string[item]
     }
-  } else if (arguments.length === 2 && typeof string === 'string' && Object.prototype.toString.call(obj) === '[object Object]') {
+  } else if (arguments.length === 2 && typeof string === 'string') {
     Component.prototype[string] = obj
   }
 }
