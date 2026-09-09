@@ -2,8 +2,8 @@ import BvWarn from "../tools/BvWarn"
 import BvError from '../tools/BvError'
 import { assertDOMEnvironment } from "../tools/domEnv"
 import Render from './Render'
-import HandleMethods from "./HandleMethods"
 import SignupComponents from "./SignupComponents"
+import SignupMethods from "./SignupMethods"
 import h from './h'
 import createID from "../tools/createID"
 import cloneVnode from "../tools/cloneVnode"
@@ -61,8 +61,8 @@ export default function Init(config) {
   // refs 获取真实dom
   vm.refs = new Object()
 
-  // 处理 methods 的 this
-  vm.methods = HandleMethods(config.methods, vm)
+  // 处理 methods 
+  vm.methods = SignupMethods(config.methods, vm)
 
   // 虚拟dom对真实dom的映射
   vm._KeyMapDom = new Map()

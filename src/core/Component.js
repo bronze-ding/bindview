@@ -14,6 +14,7 @@ import mupdate from "./mupdate"
 import CreateAnUpdater from "./CreateAnUpdater"
 
 import addComponents from "./addComponents"
+import addMethods from "./addMethods"
 import use from "./use"
 import proto from "./proto"
 import { nextTick, flushJobs } from "./scheduler"
@@ -35,6 +36,9 @@ function Component(config) {
 
 // 挂载全局组件
 Component.components = addComponents
+
+// 挂载全局方法
+Component.methods = addMethods
 
 //加载插件
 Component.use = use
@@ -62,6 +66,9 @@ Component.prototype._diffmain = diffmain
 
 // 公共组件挂载项
 Component.prototype._publicComponent = Object.create(Object.prototype)
+
+// 公共方法挂载项
+Component.prototype._publicMethod = Object.create(Object.prototype)
 
 // 创建组件实例
 Component.prototype._createComponentExample = createComponentExample
