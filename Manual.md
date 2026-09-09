@@ -130,6 +130,10 @@ export default function () {
 }
 ```
 
+> **数组、嵌套对象与 `delete` 同样是响应式的**：数组的 `push/pop/shift/unshift/splice/sort/reverse` 等变异方法、显式修改 `arr.length`（如 `arr.length = 0` 清空数组）以及 `delete` 删除属性都会触发视图更新；嵌套对象/数组会被缓存为**同一个代理引用**（`$.obj === $.obj`），深层属性修改（如 `$.obj.a.b = 1`）同样能更新视图。
+>
+> **视图更新采用微任务批处理**：同一任务内对同一实例的多次写入只触发一次 `render + diff`，因此数据修改后 DOM 并不会立刻更新。需要等待本次更新完成时，请使用原型方法 `this.$nextTick()`（见下文「原型方法」）。
+
 ### 5. `methods` 配置项
 
 `methods` 配置项用来定义一些组件内部需要使用的方法, 下面的例子中在 `methods` 中定义了一个 `Add` 方法来对 `data` 中的 `num`  进行自增，在 `onClcik` 事件绑定中使用当点击 `button` 时将调用该方法，`Add` 方法的 `this`  指向组件实例,  <span style="color:red">！！！</span> 事件绑定中的方法或函数会接收到两个参数 第一个是事件绑定的 `DOM` 元素，第二个是事件对象 `event` ,  <span style="color:yellow">*** </span>如果组件需要使用一些方法和函数这并不是唯一的方式
@@ -530,7 +534,7 @@ function Life() {
 
 ### 3. `updated` 
 
-`updated` 钩子会在 `data` 配置项中的数据被修改后调用
+`updated` 钩子会在本次**批处理刷新**完成后调用：同一轮数据变更中，同一组件实例只会触发一次 `updated`（多次写入会被合并为一次更新）。若需在更新后读取最新 DOM，请使用原型方法 `$nextTick`。
 
 ```jsx
 function Life() {
@@ -675,6 +679,36 @@ export default function () {
 }
 ```
 
+### 5. `$nextTick` 与 `$flush`
+
+由于视图更新采用微任务批处理，数据修改后 DOM 并不会立刻更新。`$nextTick` 用于在本次（下一次）DOM 更新完成后执行回调或 `resolve`：
+
+```jsx
+methods: {
+  async add() {
+    this.data.n = 2
+    await this.$nextTick() // 等待本次更新完成
+    console.log(this.refs.box.textContent)
+  }
+}
+```
+
+`$flush` 会**立即同步**消费待更新队列（与 `$nextTick` 不同，不等待微任务），一般用于测试与调试：
+
+```js
+vm.data.n++
+vm.$flush() // 同步刷新,可立即读取最新 DOM
+```
+
+### 6. `$registryStats`（调试统计）
+
+返回当前实例 `_KeyMapDom` / `_KeyMapComponent` 两个映射的**数量与 key 列表**，便于排查 DOM/组件映射是否泄漏：
+
+```js
+console.log(vm.$registryStats())
+// { dom: 12, component: 3, domKeys: [...], componentKeys: [...] }
+```
+
 ## 工具函数
 
 在 `Bindview` 中不止有 `Bindview` 构造函数还提供了一些便于开发的工具函数
@@ -799,3 +833,19 @@ export default function B(props) {
   }
 }
 ```
+
+## 附录：近期 API 与行为更新（v3 重构）
+
+汇总最近一次重构带来的主要变化：
+
+- **异步批处理更新**：新增更新调度器，同一任务内对同一实例的多次写入只执行一次 `render + diff`；新增原型方法 `$nextTick`（等待 DOM 更新）与 `$flush`（测试/调试用同步刷新）。
+- **去掉重复更新**：父组件更新后，子 / 后代组件不再被重复刷新。
+- **数组与代理增强**：数组变异方法、`arr.length = 0`、`delete` 删除、深层嵌套均响应式；嵌套代理被缓存为稳定引用。
+- **列表 diff 增强**：带 `key` 的列表支持**排序 / 重排**（不再抛错）并复用真实 DOM 保留状态；属性增删、样式增删、文本更新更准确。
+- **事件处理器可更新**：同一节点的事件可在 diff 阶段新增 / 更新 / 移除，不再永远指向旧闭包。
+- **顶层数组（片段）**：`render` 可直接返回数组，按 `display: contents` 透明容器渲染。
+- **映射生命周期统一**：新增调试方法 `$registryStats`；组件卸载后 DOM/组件映射不再残留悬空引用。
+- **环境守卫**：`bindview` 在非浏览器（SSR / Node）环境初始化或 `$mount` 时会抛出明确错误。
+- **开发 / 生产模式**：版本横幅仅在开发模式（`__DEV__`）且 `Bindview.displayVer` 为真时打印；生产构建自动裁剪 `console.warn` 警告。
+- **初始化 render 单次执行**：同一初始化流程中 `render` 只调用一次。
+- **卸载守卫**：已卸载 / 未初始化的组件不会执行无效 diff。
