@@ -4,6 +4,7 @@ import { assertDOMEnvironment } from "../tools/domEnv"
 import Render from './Render'
 import SignupComponents from "./SignupComponents"
 import SignupMethods from "./SignupMethods"
+import HandleMethods from "./HandleMethods"
 import h from './h'
 import createID from "../tools/createID"
 import cloneVnode from "../tools/cloneVnode"
@@ -62,7 +63,7 @@ export default function Init(config) {
   vm.refs = new Object()
 
   // 处理 methods 
-  vm.methods = SignupMethods(config.methods, vm)
+  vm.methods = SignupMethods(HandleMethods(config.methods, vm), vm)
 
   // 虚拟dom对真实dom的映射
   vm._KeyMapDom = new Map()
