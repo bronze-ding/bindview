@@ -54,6 +54,18 @@ export default function createComponentExample(vnode) {
     ComponentExample._parent = vm
     ComponentExample._props = Object.keys(props).length > 0 ? props : null
 
+    // 处理组件中的 id(提前确定 _key)
+    // 必须在 _Init 之前:_Init 内部会渲染并创建子组件,子组件会以 `$parent._key`
+    // 记录自己的 parentUid。若此时仍是 _Init 里生成的随机 key,之后再改成 props.id,
+    // 子组件记录的 parentUid 就会与父组件最终 uid 不一致,导致 devtools 把它们
+    // 当成与根平级的独立应用(例如 modal 与 root 平级)。
+    if (props.id && typeof props.id === 'string') {
+      ComponentExample._key = props.id
+      if (!isUUID(props.id)) {
+        BvWarn(`组件 ${elementName} 的 id: ${props.id} 应符合UUID规范`, vm)
+      }
+    }
+
     //初始化组件实例
     ComponentExample._Init(Components(props, handleSlot(children)))
 
@@ -61,15 +73,6 @@ export default function createComponentExample(vnode) {
     // 当 ref 是函数将调用该函数并传入组件实例
     if (props.ref && typeof props.ref === 'function') {
       props.ref(ComponentExample)
-    }
-
-    // 处理组件中的 key
-    // 如果 props 中有 key, 将 组件上的key设置为 props 的 key
-    if (props.id && typeof props.id === 'string') {
-      ComponentExample._key = props.id
-      if (!isUUID(props.id)) {
-        BvWarn(`组件 ${elementName} 的 id: ${props.id} 应符合UUID规范`, vm)
-      }
     }
 
     vnode.key = ComponentExample._key // 将 组件的虚拟dom key 和 组件的 key 保持一致，方便后续增删获取组件实例

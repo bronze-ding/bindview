@@ -80,8 +80,10 @@ export default function Init(config) {
   // 联动更新
   vm._linkage = typeof config.linkage === 'boolean' ? config.linkage : true
 
-  // 组件 keu
-  vm._key = createID()
+  // 组件 key
+  // 子组件在 createComponentExample 中会按 props.id 提前注入 _key(必须在渲染子节点前确定);
+  // 这里仅在没有预设 key 时兜底生成(根实例等)。
+  if (vm._key === void 0 || vm._key === null) vm._key = createID()
 
   // devtools:父组件引用与 props(子组件由 createComponentExample 提前注入,根实例为 null)
   if (vm._parent === void 0) vm._parent = null
