@@ -4,6 +4,7 @@ import isUUID from "../tools/isUUID"
 import { isVnode, isVtext } from "../tools/isVnodeAndVtext"
 import Component from "./Component"
 import { registerComponent } from "./nodeRegistry"
+import { notifyComponentAdded } from "../tools/devtools"
 
 /**
  * 插槽预处理
@@ -50,8 +51,8 @@ export default function createComponentExample(vnode) {
 
     // devtools:预置父组件引用与 props,供插件构建组件树 / 展示状态
     // (在 _Init 前注入,Init 内部不会覆盖已有值)
-    ComponentExample.$parent = vm
-    ComponentExample.$props = Object.keys(props).length > 0 ? props : null
+    ComponentExample._parent = vm
+    ComponentExample._props = Object.keys(props).length > 0 ? props : null
 
     //初始化组件实例
     ComponentExample._Init(Components(props, handleSlot(children)))
@@ -77,6 +78,11 @@ export default function createComponentExample(vnode) {
     registerComponent(vm, ComponentExample._key, ComponentExample)
 
     ComponentExample._isComponent = true
+
+    // 通知 devtools 组件已创建(未安装调试插件时为空操作)
+    // 必须放在 _key 按 props.id 确定之后:早于这里触发会让 devtools 记录随机的 _key,
+    // 而销毁时使用的是 props.id,导致 component:removed 无法移除对应节点、组件树持续累积。
+    notifyComponentAdded(ComponentExample)
 
     return ComponentExample.el
   } else {

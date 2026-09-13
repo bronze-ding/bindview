@@ -19,6 +19,7 @@ import use from "./use"
 import proto from "./proto"
 import { nextTick, flushJobs } from "./scheduler"
 import { registryStats } from "./nodeRegistry"
+import { notifyComponentAdded } from "../tools/devtools"
 
 /**
  * Component构造函数
@@ -30,6 +31,10 @@ function Component(config) {
   } else {
     if (typeof config !== void 0 && config instanceof Object) {
       this._Init(config)
+      // 通知 devtools 根实例已创建(此时 _key 已确定)
+      // 子组件的通知在 createComponentExample 中、_key 按 props.id 确定之后触发,
+      // 以保证 component:added 与 component:removed 使用同一个 uid。
+      notifyComponentAdded(this)
     }
   }
 }

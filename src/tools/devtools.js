@@ -75,7 +75,7 @@ export function emitDevtools(event, payload) {
  * @returns {Object}
  */
 export function describeInstance(vm) {
-  const parent = vm.$parent
+  const parent = vm._parent
   return {
     uid: vm._key,
     name: vm.name || 'AnonymousComponent',
