@@ -8,6 +8,7 @@ import HandleMethods from "./HandleMethods"
 import h from './h'
 import createID from "../tools/createID"
 import cloneVnode from "../tools/cloneVnode"
+import { notifyComponentAdded } from "../tools/devtools"
 
 /**
  * Bindview 初始化函数
@@ -83,6 +84,10 @@ export default function Init(config) {
   // 组件 keu
   vm._key = createID()
 
+  // devtools:父组件引用与 props(子组件由 createComponentExample 提前注入,根实例为 null)
+  if (vm.$parent === void 0) vm.$parent = null
+  if (vm.$props === void 0) vm.$props = null
+
   //* 判断 reader 函数
   if (typeof config.render === 'function') {
     // 收敛为单一渲染入口:初始化只调用一次 render(P1.6)
@@ -102,4 +107,7 @@ export default function Init(config) {
 
   // 生命周期调用 安装后
   if (vm.life && vm.life.created && typeof vm.life.created === 'function') { vm.life.created.call(vm) }
+
+  // 通知 devtools 组件已创建(未安装调试插件时为空操作)
+  notifyComponentAdded(vm)
 }

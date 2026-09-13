@@ -2,6 +2,7 @@ import BvError from "../tools/BvError";
 import Component from "./Component";
 import RemoveNode from "./diff_core/RemoveNode"
 import { unregisterComponent, clearRegistry } from "./nodeRegistry"
+import { notifyComponentRemoved } from "../tools/devtools"
 
 /**
  * 销毁组件
@@ -9,6 +10,9 @@ import { unregisterComponent, clearRegistry } from "./nodeRegistry"
  */
 export default function Remove(ComponentVM) {
   let vm = this
+
+  // 通知 devtools 组件已销毁(未安装调试插件时为空操作)
+  notifyComponentRemoved(vm)
 
   // 生命周期调用 销毁前
   if (vm.life && vm.life.beforeDestroy && typeof vm.life.beforeDestroy === 'function') { vm.life.beforeDestroy.call(vm) }

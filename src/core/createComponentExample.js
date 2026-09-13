@@ -48,6 +48,11 @@ export default function createComponentExample(vnode) {
 
     let props = Object.prototype.toString.call(attributes) === '[object Object]' ? attributes : {}
 
+    // devtools:预置父组件引用与 props,供插件构建组件树 / 展示状态
+    // (在 _Init 前注入,Init 内部不会覆盖已有值)
+    ComponentExample.$parent = vm
+    ComponentExample.$props = Object.keys(props).length > 0 ? props : null
+
     //初始化组件实例
     ComponentExample._Init(Components(props, handleSlot(children)))
 

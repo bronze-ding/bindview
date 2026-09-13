@@ -2,6 +2,7 @@ import Vnode from "../tools/Vnode";
 import Vtext from "../tools/Vtext";
 import { isVnode, isVtext, XOR } from "../tools/isVnodeAndVtext"
 import cloneVnode from "../tools/cloneVnode"
+import { notifyComponentUpdated } from "../tools/devtools"
 
 
 /**
@@ -64,6 +65,9 @@ export default function Update() {
   // _oldvnode 为 void 0(未初始化)或 null(已卸载)时直接退出
   if (!vm._oldvnode) return
 
+  // devtools:记录本次渲染耗时
+  const __devtoolsStart = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now()
+
   let newvnode = vm._renderCache() // 获取最新的虚拟节点
 
   // 新 vnode 预处理,进行 key 同步
@@ -84,4 +88,8 @@ export default function Update() {
 
   // 生命周期调用 更新后
   if (vm.life && vm.life.updated && typeof vm.life.updated === 'function') { vm.life.updated.call(vm) }
+
+  // 通知 devtools 组件已更新(未安装调试插件时为空操作)
+  const __devtoolsEnd = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now()
+  notifyComponentUpdated(vm, __devtoolsEnd - __devtoolsStart)
 }
