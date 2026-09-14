@@ -21,11 +21,13 @@ export default function Remove(ComponentVM) {
   vm.vnode = vm._oldvnode = null
 
   // 注销子组件(统一注销入口, P2.3)
+  //
+  // 注意:此处**不判断 _linkage** —— linkage 的职责仅是「父组件更新时是否联动子组件更新」
+  // (见 updateComponent.js)。销毁属于结构生命周期,必须无条件执行;否则 linkage: false
+  // 的子组件会残留实例与注册表引用,且其 destroyed 生命周期不会触发。
   vm._KeyMapComponent.forEach(item => {
-    if (item._linkage) {
-      item.$remove(vm);
-      unregisterComponent(vm, item._key)
-    }
+    item.$remove(vm);
+    unregisterComponent(vm, item._key)
   })
 
   // 注销当前组件
