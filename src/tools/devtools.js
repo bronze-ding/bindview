@@ -110,6 +110,28 @@ export function notifyComponentUpdated(vm, duration) {
 }
 
 /**
+ * 通知:组件方法被调用
+ *
+ * 由 HandleMethods 的方法包装统一调用,因此**页面内调用与面板调用都会上报**;
+ * 面板触发的调用由调试器后端做去重,不会重复记录。
+ *
+ * @param {Component} vm
+ * @param {String} name 方法名
+ * @param {Number} argsCount 实际传入的参数个数
+ * @param {Number} duration 同步执行耗时(ms)
+ */
+export function notifyMethodCall(vm, name, argsCount, duration) {
+  emitDevtools('component:method-call', {
+    uid: vm && vm._key ? vm._key : null,
+    name: name,
+    argsCount: typeof argsCount === 'number' ? argsCount : 0,
+    duration: typeof duration === 'number' ? duration : 0,
+    source: 'app',
+    timestamp: Date.now()
+  })
+}
+
+/**
  * 通知:组件已销毁
  * @param {Component} vm
  */
@@ -187,5 +209,6 @@ export default {
   attachSnapshotProvider,
   notifyComponentAdded,
   notifyComponentUpdated,
+  notifyMethodCall,
   notifyComponentRemoved
 }
