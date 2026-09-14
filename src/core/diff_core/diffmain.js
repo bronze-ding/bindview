@@ -1,4 +1,5 @@
-import { HTML_TAGS, NAME_SPACE, GLOBAL_ATTRIBUTES, EVENT_HANDLERS } from "../dict"
+import { HTML_TAGS, NAME_SPACE, GLOBAL_ATTRIBUTES, EVENT_HANDLERS, BOOL_ATTRS } from "../dict"
+import setBooleanAttr from "../boolAttr"
 import { isVnode, isVtext } from "../../tools/isVnodeAndVtext"
 import { NodeReplacementNode, ComponentReplacementComponent, NodeReplacementComponent, ComponentReplacementNode } from "./SubstitutionNode"
 import SetNodeStyle from "./SetNodeStyle";
@@ -34,6 +35,27 @@ const isComponent = (vnode) => {
 const isKeyedList = (children) => {
   if (!Array.isArray(children) || children.length === 0) return false
   return children.every(child => isVnode(child) && child.attributes && child.attributes.key !== void 0)
+}
+
+/**
+ * <select> 受控 value 的二次同步
+ *
+ * diff 时 attributes 先于 children 处理:若同一轮内 option 列表与 value 同时变化,
+ * 写入 value 的时刻新 option 尚未存在,浏览器会把 select.value 置为 ''(selectedIndex = -1),
+ * 且此后不会再自动纠正。因此在子节点处理完成后再同步一次。
+ *
+ * @param {Vnode} vnode 当前(新)虚拟节点
+ * @param {Component} vm 组件实例
+ */
+const syncSelectValue = (vnode, vm) => {
+  const attrs = vnode.attributes
+  if (!attrs || attrs.value === void 0 || attrs.value === null) return
+
+  const dom = vm._KeyMapDom.get(vnode.key)
+  if (!(dom instanceof Element) || dom.tagName !== 'SELECT') return
+
+  const target = String(attrs.value)
+  if (dom.value !== target) dom.value = target
 }
 
 /**
@@ -137,6 +159,11 @@ export default function diffmain(oldvnode, newvnode) {
           for (let attrName in oldAttrs) {
             if (attrName === 'style' || attrName === 'ref' || attrName in EVENT_HANDLERS) continue
             if (!(attrName in newAttrs)) {
+              if (attrName in BOOL_ATTRS) {
+                // 布尔属性:复位 DOM property,否则 checked / selected 会因 dirty 状态残留
+                setBooleanAttr(dom, attrName, false)
+                continue
+              }
               const realAttrName = GLOBAL_ATTRIBUTES[attrName] || attrName
               dom.removeAttribute(realAttrName)
               if (attrName === 'value' && 'value' in dom) dom.value = ''
@@ -155,10 +182,7 @@ export default function diffmain(oldvnode, newvnode) {
         // 纯 keyed 列表统一走 key 对齐算法(支持插入 / 删除 / 重排,并复用真实 DOM)
         if (isKeyedList(newChildren)) {
           PatchChildren(oldChildren, newChildren, oldvnode, vm)
-          break
-        }
-
-        if (newChildren.length === oldChildren.length) {
+        } else if (newChildren.length === oldChildren.length) {
           // 子节点长度不变,按索引逐一比较
           for (let i = 0; i < newChildren.length; i++) {
             vm._diffmain(oldChildren[i], newChildren[i])
@@ -184,6 +208,10 @@ export default function diffmain(oldvnode, newvnode) {
           }
           index = null
         }
+
+        // options 就绪后同步 <select> 的受控 value
+        syncSelectValue(newvnode, vm)
+
         break
       }
       case "key":

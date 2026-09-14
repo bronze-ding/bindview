@@ -472,6 +472,37 @@ const EVENT_HANDLERS = {
   onTransitionEnd: 'transitionend'
 }
 
+/**
+ * 布尔属性(HTML boolean attribute)表
+ *
+ * 这类属性的语义是「存在即为真」,用 setAttribute 写入 false 会得到 checked="false"
+ * 这样的属性(存在 → 反而为真);且用户交互后 checked / selected 带有 dirty 标记,
+ * 改 attribute 不会再影响实际状态。因此必须走 DOM property。
+ * key 为 JSX 属性名,value 为对应的 DOM property 名。
+ */
+const BOOL_ATTRS = {
+  checked: 'checked',
+  selected: 'selected',
+  disabled: 'disabled',
+  readOnly: 'readOnly',
+  required: 'required',
+  multiple: 'multiple',
+  autoFocus: 'autofocus',
+  autoPlay: 'autoplay',
+  controls: 'controls',
+  loop: 'loop',
+  muted: 'muted',
+  open: 'open',
+  default: 'default',
+  isMap: 'isMap',
+  noValidate: 'noValidate',
+  reversed: 'reversed',
+  hidden: 'hidden',
+  allowFullscreen: 'allowFullscreen',
+  async: 'async',
+  defer: 'defer'
+}
+
 // 自定义属性
 const CUSTOM_ATTR = {
   ref: function (ref, el) {
@@ -519,5 +550,6 @@ export {
   CUSTOM_ATTR,
   GLOBAL_ATTRIBUTES,
   HTML_TAGS,
-  EVENT_HANDLERS
+  EVENT_HANDLERS,
+  BOOL_ATTRS
 }

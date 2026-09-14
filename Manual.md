@@ -693,6 +693,8 @@ methods: {
 }
 ```
 
+> **读取表单初始值的时机**：`<select>` 的初始 `value` 需要等待 `option` 子节点就绪，框架在创建元素时用微任务写入。因此在 `created` 钩子中同步读取（`this.refs.sel.value`）拿到的是浏览器默认选中的首项，而不是你传入的目标值；请在 `$nextTick` 中读取。
+
 `$flush` 会**立即同步**消费待更新队列（与 `$nextTick` 不同，不等待微任务），一般用于测试与调试：
 
 ```js
@@ -849,3 +851,7 @@ export default function B(props) {
 - **开发 / 生产模式**：版本横幅仅在开发模式（`__DEV__`）且 `Bindview.displayVer` 为真时打印；生产构建自动裁剪 `console.warn` 警告。
 - **初始化 render 单次执行**：同一初始化流程中 `render` 只调用一次。
 - **卸载守卫**：已卸载 / 未初始化的组件不会执行无效 diff。
+- **表单布尔属性修复**：`checked`、`selected`、`disabled`、`readOnly`、`required`、`multiple`、`autoFocus`、`autoPlay`、`open`、`hidden` 等布尔属性（见 `BOOL_ATTRS`）改为写 DOM property，取值 `false` 时不再输出 `checked="false"` 这类属性（此前会因「属性存在即为真」导致元素被勾选 / 禁用）；程序化改回 `false` 时也能穿透用户交互产生的 dirty 状态，正确取消勾选 / 选中。
+- **`<select>` 受控值二次同步**：diff 中子节点处理完成后会再同步一次 `select.value`，修复「同一轮内 `option` 列表与 `value` 同时变化时 `value` 被置空」的问题（此前即使等到 `$nextTick` 也读不到目标值）。
+- **表单值归一化**：`value` 属性在建节点与 diff 更新时都会做归一化，`undefined` / `null` 统一写为空串，`<input value={undefined}>` 不再渲染成 `"undefined"`。
+- **空值与布尔子节点不渲染文本**：`{null}`、`{undefined}`、`{false}` / `{true}` 作为子节点不再被字符串化成 `"null"` / `"undefined"` / `"false"` 文本（与 React / Vue 语义一致），因此 `{ok && <div/>}` 这类条件渲染可以直接书写。

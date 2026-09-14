@@ -30,6 +30,12 @@ export default function Render(vdom, vm) {
     }, vm)
   }
 
+  // null / undefined / boolean 不产生文本(与 React / Vue 语义一致)
+  // 否则 `{null}` 会经下面的兜底分支被 String() 成 "null",`{false && <div/>}` 会渲染出 "false"
+  if (vdom === null || vdom === void 0 || typeof vdom === 'boolean') {
+    return new Vtext('')
+  }
+
   // 判断 vdom 是字符串还是数值, 创建文本类型的虚拟节点
   if (typeof vdom === 'string' || typeof vdom === 'number') {
     return new Vtext(vdom)

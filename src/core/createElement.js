@@ -1,4 +1,6 @@
-import { NAME_SPACE, CUSTOM_ATTR, GLOBAL_ATTRIBUTES, HTML_TAGS, EVENT_HANDLERS } from './dict'
+import { NAME_SPACE, CUSTOM_ATTR, GLOBAL_ATTRIBUTES, HTML_TAGS, EVENT_HANDLERS, BOOL_ATTRS } from './dict'
+import setBooleanAttr from './boolAttr'
+import normalizeValue from '../tools/normalizeValue'
 import Vnode from "../tools/Vnode"
 import BvError from '../tools/BvError'
 import { isVnode, isVtext } from "../tools/isVnodeAndVtext"
@@ -42,23 +44,29 @@ export default function createElement(vnode) {
     if (tagType !== void 0) {
       // 对属性进行操作
       Object.keys(attributes === null ? {} : attributes).forEach(prop => {
-        if (prop in attrs) {
+        if (prop in BOOL_ATTRS) {
+          // 布尔属性:存在即为真,必须写 DOM property(详见 dict.js 中 BOOL_ATTRS 注释)
+          // 该判断不依赖元素自身的属性表,避免非表单元素 / 自定义标签上的布尔属性被当作普通属性
+          setBooleanAttr(domExample, prop, attributes[prop])
+        } else if (prop in attrs) {
           // 公共属性
           switch (prop) {
             case "xlink:href":
               domExample.setAttributeNS('http://www.w3.org/1999/xlink', prop, attributes[prop]);
               break;
             case "value":
+              // null / undefined 归一化为空串,避免被字符串化成 "undefined"
               if ("value" in domExample) {
+                const val = normalizeValue(attributes[prop])
                 if (domExample.tagName === "SELECT") {
                   Promise.resolve().then(function () {
-                    domExample.value = attributes[prop]
+                    domExample.value = val
                   })
                 } else {
-                  domExample.value = attributes[prop]
+                  domExample.value = val
                 }
               } else {
-                domExample.setAttribute(attrs[prop], attributes[prop]);
+                domExample.setAttribute(attrs[prop], normalizeValue(attributes[prop]));
               }
               break
             default:
