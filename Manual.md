@@ -107,19 +107,19 @@ new Bindview({
 
 `Bindview` 使用了一种类似于 <a href="https://baike.baidu.com/item/MVVM/96310?fr=ge_ala">MVVM</a> 的设计模式，数据和视图进行绑定，页面的显示结果将受 `data` 配置项中的数据影响，而 `data` 配置项中的数据使用了 `Vue3` 数据代理的方法，修改 `data` 中的数据，视图将自动更新 
 
-在下面这个例子中，`data` 中配置一个 `num` 是数据，在 `render` 方法中 `this` 可以获取到整个组件是实例，我们通过 `this` 解构出 `data` 并重命名为 `$` ,在 `JSX` 中使用数据，在 `button` 上绑定了一个点击事件来对数据进行自增，当点击 页面上的 button 按钮时页面上的数据将自动更新
+在下面这个例子中，`data` 中配置一个 `num` 是数据，在 `render` 方法中 `this` 可以获取到整个组件是实例，我们通过 `this` 解构出 `data` 并重命名为 `_` ,在 `JSX` 中使用数据，在 `button` 上绑定了一个点击事件来对数据进行自增，当点击 页面上的 button 按钮时页面上的数据将自动更新
 
 ```jsx
 export default function () {
   return {
     name: 'App',
     render() {
-      const { data: $ } = this
+      const { data: _ } = this
 
       return (
         <div id="App">
-          <div>{$.num}</div>
-          <button onClick={() => $.num++}>Button</button>
+          <div>{_.num}</div>
+          <button onClick={() => _.num++}>Button</button>
         </div>
       )
     },
@@ -130,7 +130,7 @@ export default function () {
 }
 ```
 
-> **数组、嵌套对象与 `delete` 同样是响应式的**：数组的 `push/pop/shift/unshift/splice/sort/reverse` 等变异方法、显式修改 `arr.length`（如 `arr.length = 0` 清空数组）以及 `delete` 删除属性都会触发视图更新；嵌套对象/数组会被缓存为**同一个代理引用**（`$.obj === $.obj`），深层属性修改（如 `$.obj.a.b = 1`）同样能更新视图。
+> **数组、嵌套对象与 `delete` 同样是响应式的**：数组的 `push/pop/shift/unshift/splice/sort/reverse` 等变异方法、显式修改 `arr.length`（如 `arr.length = 0` 清空数组）以及 `delete` 删除属性都会触发视图更新；嵌套对象/数组会被缓存为**同一个代理引用**（`_.obj === _.obj`），深层属性修改（如 `_.obj.a.b = 1`）同样能更新视图。
 >
 > **视图更新采用微任务批处理**：同一任务内对同一实例的多次写入只触发一次 `render + diff`，因此数据修改后 DOM 并不会立刻更新。需要等待本次更新完成时，请使用原型方法 `this.$nextTick()`（见下文「原型方法」）。
 
@@ -143,11 +143,11 @@ export default function () {
   return {
     name: 'App',
     render() {
-      const { data: $,methods: f } = this
+      const { data: _,methods: f } = this
 
       return (
         <div id="App">
-          <div>{$.num}</div>
+          <div>{_.num}</div>
           <button onClick={f.Add}>Button</button>
         </div>
       )
@@ -182,7 +182,7 @@ export default function () {
       )
     },
     life:{
-        createDom(){
+        created(){
             console.log(this.refs) // { div:HTMLDivElement }
         }
     }
@@ -205,7 +205,7 @@ export default function () {
       )
     },
     life:{
-        createDom(){
+        created(){
             console.log(this.refs) // { box:[ HTMLDivElement , HTMLDivElement ] }
         }
     }
@@ -237,11 +237,11 @@ export default function () {
   return {
     name: 'Dome',
     render() {
-      const { data: $ } = this
+      const { data: _ } = this
       return (
         <div>
-          <button onClick={() => $.num++}>num++</button>
-          <Son num={() => $.num} />
+          <button onClick={() => _.num++}>num++</button>
+          <Son num={() => _.num} />
         </div>
       )
     },
@@ -282,11 +282,11 @@ export default function () {
    return {
      name: 'Dome',
      render() {
-       const { data: $ } = this
+       const { data: _ } = this
        return (
          <div>
-           <button onClick={() => $.num++}>num++</button>
-           <Son num={() => $.num}>
+           <button onClick={() => _.num++}>num++</button>
+           <Son num={() => _.num}>
              <span>Num: </span>
            </Son>
          </div>
@@ -322,12 +322,12 @@ export default function () {
   return {
     name: 'Dome',
     render() {
-      const { data: $ } = this
+      const { data: _ } = this
       return (
         <div>
-          <button onClick={() => $.num++}>num++</button>
+          <button onClick={() => _.num++}>num++</button>
           <Son>{(title) => (
-            <span>{title} {$.num}</span>
+            <span>{title} {_.num}</span>
           )}</Son>
         </div>
       )
@@ -417,7 +417,7 @@ new Bindview({
 <span style="color:red">！！！</span> 插件需要是一个函数或一个带有 `_install_` 方法的对象，它们会获得 `bindview` 的构造器
 
 ```jsx
-import { Bindview } from "bindview@3"
+import { Bindview } from "bindview"
 import App from "./App";
 
 import { history } from "bindview-router"
@@ -436,7 +436,7 @@ new Bindview({
 `components` 方法用来注册全局组件，在 `new Bindview` 之前全局注册的组件无需再注册即可使用
 
 ```jsx
-import Bindview from "../../bindview@3"
+import Bindview from "../../bindview"
 import App from "./App";
 
 Bindview.components("App",App) // 方式一
@@ -475,22 +475,135 @@ export default function (props) {
 
 
 
+## 更新机制：微任务批处理（重点）
+
+`bindview` 的视图更新是**异步批处理**的：数据被写入的那一刻只是把组件「标记为脏」并入队，真正的 `render + diff + updated` 会在**微任务（microtask）**中执行。理解这一机制是理解后面的「生命周期调用时机」与「表单处理」的前提。
+
+### 1. 调度器的实现
+
+调度逻辑集中在 [`scheduler.js`](bindview@3/src/core/scheduler.js)：
+
+- `pendingJobs`：一个 `Set`，保存待更新组件。`Set` 天然去重，**同一实例在一轮里最多只会入队一次**。
+- [`queueJob()`](bindview@3/src/core/scheduler.js:41)：入队入口，由数据代理（[`DataProxy.js`](bindview@3/src/core/DataProxy.js:55) 的 `set` / `deleteProperty` / 数组变异方法）、[`$mupdate()`](bindview@3/src/core/mupdate.js:7) 以及子组件联动（[`updateComponent.js`](bindview@3/src/core/updateComponent.js:10)）调用。
+- [`scheduleFlush()`](bindview@3/src/core/scheduler.js:51)：用 `Promise.resolve().then(...)` 安排一次刷新，`currentFlush` 变量保证**多次入队只对应一个微任务**。
+- [`flushJobs()`](bindview@3/src/core/scheduler.js:25)：`while (pendingJobs.size > 0)` 循环消费队列，因此刷新过程中新产生的更新（父组件级联出的子组件更新）会在**同一轮**被消费完。
+- [`nextTick()`](bindview@3/src/core/scheduler.js:69)：等待本次（或下一次）DOM 更新完成后执行回调 / `resolve`。
+
+> 一句话：**赋值是同步的，DOM 更新是异步的（微任务）**。
+
+### 2. 一次数据写入发生了什么
+
+```jsx
+export default function () {
+  return {
+    name: 'App',
+    render() {
+      const { data: _ } = this
+      return (
+        <div ref="box">
+          <span>{_.n}</span>
+          <button onClick={() => {
+            // 第 1 步：同步入队(Set 去重),此刻 DOM 仍是旧值
+            _.n = 1
+            _.n = 2
+            _.n = 3
+            // 第 2 步：微任务中 flush → render → diff → updated(只执行一次!)
+          }}>add</button>
+        </div>
+      )
+    },
+    data: () => ({ n: 0 }),
+    life: {
+      updated() {
+        // 到这里 DOM 已经是最新的
+        console.log(this.refs.box.textContent) // "3"
+      }
+    }
+  }
+}
+```
+
+执行顺序：
+
+1. 点击回调（同步）：`_.n = 1/2/3` → 三次 `queueJob`，但 `Set` 去重后队列里只有一个该实例 → 只安排**一个**微任务。
+2. 当前宏任务（事件回调）结束。
+3. 微任务：`flushJobs()` 取出实例 → `_Update()` → `_renderCache()` → `diffmain()` → `_updateComponent()`（把需要联动的子组件入队）→ 调用 `life.updated`。
+4. 队列中若还有级联出的子组件，在同一轮 `flushJobs` 内继续消费（父先子后）。
+
+### 3. 批处理的 6 条规则
+
+| # | 规则 | 说明 |
+| :-: | :--- | :--- |
+| 1 | 写入同步入队 | `_.x = 1` 立即执行，但视图不会立刻变 |
+| 2 | 同轮去重 | 同一任务内对同一实例的多次写入 → 只 `render + diff` 一次 |
+| 3 | 级联同轮消费 | 父组件更新中入队的子组件，在本轮 `flushJobs` 内执行完 |
+| 4 | 父先子后 | `flushJobs` 按入队顺序（`Set` 插入序）执行，父 `updated` 先于子 `updated` |
+| 5 | 空转守卫 | 未初始化（`_oldvnode` 为 `undefined`）或已卸载（`_oldvnode === null`）的实例**不会**入队，避免无效 `diff` |
+| 6 | `updated` 在微任务里 | 钩子不再是「赋值语句下一行」同步触发，而是本轮 flush 中触发 |
+
+### 4. 如何「等待更新完成」
+
+```js
+// 写法一：Promise
+this.data.n = 1
+await this.$nextTick()
+console.log(this.refs.box.textContent) // 新值
+
+// 写法二：回调
+this.data.n = 1
+this.$nextTick(() => {
+  console.log(this.refs.box.textContent) // 新值
+})
+
+// 写法三：测试 / 调试用,立即同步刷新(不等待微任务)
+this.data.n = 1
+this.$flush()
+console.log(this.refs.box.textContent) // 新值
+```
+
+### 5. 常见误区
+
+- ❌ **「赋值后立刻读 DOM」**：`_.n++ ; console.log(this.refs.box.textContent)` 读到的是旧值 → 请用 `$nextTick`。
+- ❌ **在 `render` 里修改 `data`**：初始化阶段 `_oldvnode` 尚未建立，`queueJob` 会被守卫直接忽略；在更新阶段也可能引起反复渲染，属于反模式。
+- ❌ **在 `updated` 中无条件修改自身依赖的 `data`**：`flushJobs` 是 `while` 循环，本轮新入队的任务会被继续消费，可能形成**同轮死循环**。如确需，请加条件判断或改用 `$nextTick` 延后。
+- ⚠️ **`$mupdate(fn)` 也不是同步更新**：它会先同步执行 `fn`，再 `queueJob`，DOM 仍在微任务中更新；需要立刻读 DOM 请配 `$flush()`。
+
+
+
 ## 生命周期钩子
 
 每个 `Bindview` 实例在被创建时都要经过一系列的初始化过程——例如，需要设置数据监听、将实例挂载到 DOM 并在数据变化时更新 DOM 等。同时在这个过程中也会运行一些叫做 **生命周期钩子** 的函数，这给了用户在不同阶段添加自己的代码的机会
 
 在 `Bindview` 中 **生命周期钩子** 需要配置到 `life` 配置项中
 
-|  生命周期钩子   |     调用时     |
-| :-------------: | :------------: |
-|  `beforeInit`   |  实例初始化前  |
-|    `created`    |  `dom` 创建后  |
-|    `updated`    | 数据改变后 |
-| `beforeDestroy` |   组件销毁前   |
+| 生命周期钩子 | 调用时机 | 调用方式 | 此时能否读 DOM |
+| :---: | :--- | :---: | :---: |
+| `beforeInit` | 实例初始化最开始，`data` 代理、`el`、`methods` 都还没建立 | 同步（构造过程中） | 否 |
+| `created` | 真实 `DOM` 已由 `render` 创建完成 | 同步（`Init` 末尾） | 可以（通过 `refs`，时序见下） |
+| `updated` | **微任务批处理**中，本轮 `render + diff` 完成后 | **异步（微任务）** | 可以（已是新 DOM） |
+| `beforeDestroy` | 组件被卸载、`DOM` 被移除之前 | 同步 | 可以（元素仍在） |
+
+<span style="color:red">！！！</span> **`updated` 是最需要注意的变化**：由于采用微任务批处理，`updated` **不再**在「修改数据的下一行」同步触发，而是在本轮更新队列被 flush 时才触发；并且同一轮内对同一实例的多次写入只会触发**一次** `updated`。
+
+钩子与调度器的关系（详见上一章「更新机制：微任务批处理」）：
+
+```
+赋值 _.n++  ──同步──▶ queueJob(vm) 入队(Set 去重)
+                │
+                ▼  ──微任务(flushJobs)──
+        _Update() → render → diffmain → _updateComponent() → life.updated()
+                │
+                ▼
+        (若本轮还有级联子组件,继续 while 消费 → 子组件 updated)
+```
 
 ### 1. `beforeInit` 
 
-`beforeInit` 会在组件实例初始化时调用, 在该阶段可以通过一个形参获取到组件的配置对象通过修改配置对象可以修改最后被创建出来的实例，也可以在此阶段通过 `this` 向组件实例上添加一些自定义的方法或数据
+`beforeInit` 会在组件实例初始化时调用，是本轮生命周期中**最早**的一个钩子（见 [`Init.js`](bindview@3/src/core/Init.js:26)）。
+
+- **形参**：传入的是 `config.data` 的**原始值**（即你写在 `data` 配置项里的对象或函数），而**不是**整个配置对象。
+- 此时 `vm.data`（响应式代理）、`vm.el`、`vm.methods`、`vm.refs` **都还不存在**，因此不要在 `beforeInit` 中访问 `this.data`。
+- 推荐用法是通过 `this` 向实例上挂载一些**非响应式**的自定义字段 / 方法（例如下面的 `this.datas`）；若 `data` 是对象形式，也可以通过形参直接补默认值（后续代理使用的正是同一个对象引用，对函数形式的 `data` 无效）。
 
 ```jsx
 function Life() {
@@ -502,9 +615,10 @@ function Life() {
       )
     },
     life: {
-		beforeInit(ConfigObj){
-            console.log(ConfigObj)
-        }
+		beforeInit(dataConfig){
+		          // dataConfig 是 data 配置项的原始值(对象 / 函数),注意此时 this.data 还不存在
+		          console.log(dataConfig)
+		      }
     }
   }
 }
@@ -512,7 +626,28 @@ function Life() {
 
 ### 2. `created` 
 
-`created` 钩子会在 `render` 配置项中的 **虚拟DOM** 被创建为 **真实DOM** 后调用，在此阶段就可以通过 `refs` 得到 `DOM` 元素了
+`created` 钩子会在 `render` 配置项中的 **虚拟DOM** 被创建为 **真实DOM** 后调用，在此阶段就可以通过 `refs` 得到 `DOM` 元素了。
+
+需要注意两点时序问题：
+
+1. **`created` 是同步调用的**（在 [`Init.js`](bindview@3/src/core/Init.js:110) 末尾），它发生在初始化流程内部。
+2. **能否立刻读到「正确」的值要分情况**：
+   - 使用 `el` 配置项时，`created` 触发时元素已经插入页面；
+   - 使用 `createApp(...).$mount()` 时，`created` 触发时元素**尚未插入文档**，但通过 `refs` 依然可以访问（只是 `document.querySelector` 查不到、依赖布局的测量会得到 0）；
+   - **`<select>` 的初始 `value` 由微任务写入**（见「表单处理」章节），在 `created` 中**同步**读取 `this.refs.sel.value` 拿到的是浏览器默认选中的首项，而不是你传入的目标值。**请用 `$nextTick` 读取**。
+
+```jsx
+life: {
+  created() {
+    // 元素已创建,refs 可用
+    console.log(this.refs.box)
+    // 涉及 <select> 初始值:请等到 DOM 更新完成后再读
+    this.$nextTick(() => {
+      console.log(this.refs.sel.value)
+    })
+  }
+}
+```
 
 ```jsx
 function Life() {
@@ -534,7 +669,31 @@ function Life() {
 
 ### 3. `updated` 
 
-`updated` 钩子会在本次**批处理刷新**完成后调用：同一轮数据变更中，同一组件实例只会触发一次 `updated`（多次写入会被合并为一次更新）。若需在更新后读取最新 DOM，请使用原型方法 `$nextTick`。
+`updated` 钩子会在本次**批处理刷新**完成后调用：同一轮数据变更中，同一组件实例只会触发一次 `updated`（多次写入会被合并为一次更新）。
+
+在**微任务批处理**模式下，它相比「每次 `set` 都同步更新」的旧行为有以下差异：
+
+| 对比项 | 旧行为（同步更新） | 现在（微任务批处理） |
+| :--- | :--- | :--- |
+| 触发时机 | 每次赋值后立即 | 本轮 flush（微任务）时 |
+| 触发次数 | 写入 N 次 → N 次 | 写入 N 次 → **1 次** |
+| 触发位置 | 赋值语句所在调用栈 | 独立的微任务调用栈 |
+| 多实例顺序 | 各自独立 | 父组件先于子组件（同一轮 FIFO） |
+
+因此：
+
+- **不要**把「赋值后紧跟着的代码」当作 `updated` 的时机，那时代码先于 `updated` 执行。
+- 想在 `updated` 里读最新 `DOM` 是可以的（此时 `diff` 已完成）。
+- 想在**任意位置**等待更新结束，用 `$nextTick`；测试中想同步刷新用 `$flush`。
+- <span style="color:red">！！！</span> **不要在 `updated` 中无条件修改自身依赖的 `data`**：`flushJobs` 使用 `while` 循环，本轮新入队的任务会被继续消费，可能造成同一轮内**反复更新甚至死循环**。
+
+```jsx
+life: {
+  updated() {
+    console.log("本轮更新完成, DOM 已是最新")
+  }
+}
+```
 
 ```jsx
 function Life() {
@@ -575,6 +734,224 @@ function Life() {
   }
 }
 ```
+
+
+
+## 表单处理
+
+表单是「数据 ↔ 视图」最容易出问题的地方，`bindview` 对表单做了一系列专门处理（见 [`createElement.js`](bindview@3/src/core/createElement.js)、[`SetAttr.js`](bindview@3/src/core/diff_core/SetAttr.js)、[`boolAttr.js`](bindview@3/src/core/boolAttr.js)、[`diffmain.js`](bindview@3/src/core/diff_core/diffmain.js)）。本章说明推荐写法与必须注意的时序。
+
+### 1. `value`：走 DOM property 并做归一化
+
+`value` 不会被当成普通 attribute 写入，而是写入 **DOM property**，并做归一化（[`normalizeValue.js`](bindview@3/src/tools/normalizeValue.js:11)）：
+
+| 传入 | 渲染结果 |
+| :--- | :--- |
+| `value={undefined}` | `""`（**不会**渲染成 `"undefined"`） |
+| `value={null}` | `""` |
+| `value={0}` | `"0"` |
+| `value={"abc"}` | `"abc"` |
+
+建节点与 `diff` 更新两处都做了同样的归一化，因此 `value` 在 `undefined ↔ "x"` 之间来回切换都是可靠的。
+
+> `value` 在 diff 中被**删除**时（新 `vnode` 不再包含该属性），框架会移除对应 attribute 并把 `dom.value` 置为 `''`（见 [`diffmain.js`](bindview@3/src/core/diff_core/diffmain.js:169)）。
+
+### 2. 布尔属性：写 property，不再是「有属性即为真」
+
+HTML 布尔属性的语义是「存在即为真」，若用 `setAttribute('checked', false)` 会写出 `checked="false"`（属性存在 → 元素**反而被勾选**）。为此 `bindview` 对以下属性统一走 **DOM property**（[`BOOL_ATTRS`](bindview@3/src/core/dict.js:483)）：
+
+| 分类 | 属性 |
+| :--- | :--- |
+| 表单 | `checked`、`selected`、`disabled`、`readOnly`、`required`、`multiple` |
+| 自动 / 播放 | `autoFocus`、`autoPlay`、`controls`、`loop`、`muted` |
+| 其他 | `open`、`hidden`、`default`、`isMap`、`noValidate`、`reversed`、`allowFullscreen`、`async`、`defer` |
+
+由此带来两个关键保证：
+
+1. **取值为 `false` 时不会输出该 attribute**，也不会把元素设为勾选 / 禁用；
+2. **程序化改回 `false` 能穿透用户交互产生的 dirty 状态**，正确取消勾选 / 取消选中（例如「清除已完成」「全不选」这类操作）。
+
+```jsx
+<input type="checkbox" checked={_.ok} onChange={f.onChange} />
+<input disabled={_.disabled} />
+<input type="radio" name="g" checked={_.g === 'a'} onChange={f.pickA} />
+```
+
+> 「写 property 并同步 attribute」意味着 `outerHTML`、表单序列化、CSS 选择器（如 `[checked]`）的表现也符合预期。
+
+### 3. `<select>` 的时序：初始值由微任务写入
+
+`<select>` 比较特殊：它的 `value` 依赖 `option` 子节点存在，而建节点时属性处理**早于**子节点创建，所以框架对 `SELECT` 的 `value` 采用**微任务写入**（[`createElement.js`](bindview@3/src/core/createElement.js:61)）：
+
+```js
+if (domExample.tagName === "SELECT") {
+  Promise.resolve().then(function () { domExample.value = val })
+}
+```
+
+由此产生一条**必须遵守**的规则：
+
+<span style="color:red">！！！</span> **不要在 `created` 中同步读取 `<select>` 的初始值。**
+
+- `created` 里同步读 `this.refs.sel.value` → 得到的往往是浏览器默认选中的**第一项**，不是 `value` 目标值；
+- 正确做法是在 `$nextTick` 中读取。
+
+```jsx
+export default function () {
+  return {
+    name: 'App',
+    render() {
+      const { data: _, methods: f } = this
+      return (
+        <select ref="sel" value={_.picked} onChange={f.onPick}>
+          <option value="a">A</option>
+          <option value="b">B</option>
+        </select>
+      )
+    },
+    data: () => ({ picked: 'b' }),
+    methods: {
+      onPick(dom) { this.data.picked = dom.value }
+    },
+    life: {
+      created() {
+        // ❌ 同步读到的是浏览器默认首项
+        console.log(this.refs.sel.value)
+        // ✅ 等到 DOM 更新完成
+        this.$nextTick(() => {
+          console.log(this.refs.sel.value) // "b"
+        })
+      }
+    }
+  }
+}
+```
+
+### 4. 同一轮内「选项列表」与 `value` 同时变化
+
+`diff` 的处理顺序是 **attributes → children**。若同一轮内 `option` 列表被重建、同时 `value` 又指向新选项，写 `value` 的那一刻新 `option` 还不存在，浏览器会把 `select.value` 置为 `''` 且不再自动纠正。
+
+框架在**子节点处理完成后**会再做一次受控同步（[`syncSelectValue()`](bindview@3/src/core/diff_core/diffmain.js:50)），因此下面这种写法是可靠的：
+
+```jsx
+data: () => ({ picked: 'y', opts: ['x', 'y'] }),
+
+methods: {
+  changeOptions() {
+    // 同一轮内同时改选项与目标值
+    this.data.opts = ['m', 'n']
+    this.data.picked = 'n'
+    this.$nextTick(() => {
+      console.log(this.refs.sel.value) // "n"
+    })
+  }
+}
+
+// render
+<select ref="sel" value={_.picked} onChange={f.onPick}>
+  {_.opts.map(o => <option value={o}>{o}</option>)}
+</select>
+```
+
+> `syncSelectValue` 只在 `value` 非 `undefined` / `null` 时生效，比较时会做 `String()`，因此 `value={1}` 与 `<option value="1">` 也能正确匹配。
+
+### 5. 事件回写：回调签名是 `(dom, event)`
+
+`bindview` 的事件处理器接收两个参数，**不是** React 的 `(event)`：
+
+```jsx
+methods: {
+  onInput(dom, event) { this.data.text = dom.value },
+  onChange(dom) { this.data.flag = dom.checked },
+  onSelect(dom) { this.data.picked = dom.value },
+  onSubmit(dom, event) { event.preventDefault(); /* ... */ }
+}
+```
+
+> `this` 指向组件实例（见 [`eventBinding.js`](bindview@3/src/core/eventBinding.js:21)）。
+
+### 6. 为什么「受控」但不「强制」——务必在事件里回写数据
+
+`bindview` 的数据流向是**数据 → DOM 单向同步**：只有当 `data` 真正发生变化时才会安排 diff。这意味着：
+
+- 用户输入后，若你在事件里**没有**把 DOM 的值写回 `data`，数据没变 → 不触发更新 → **DOM 会保留用户输入**（不会像 React 那样回滚）；
+- 因此「受控表单」在 `bindview` 中的正确姿势是：**在 `onInput` / `onChange` 里立刻写回 `data`**。
+
+```jsx
+methods: {
+  onInput(dom) { this.data.text = dom.value } // 必须回写
+}
+```
+
+### 7. 完整示例
+
+```jsx
+export default function () {
+  return {
+    name: 'Form',
+    render() {
+      const { data: _, methods: f } = this
+      return (
+        <form onSubmit={f.submit}>
+          {/* 文本框 */}
+          <input value={_.text} onInput={f.onText} />
+
+          {/* 复选框 */}
+          <input type="checkbox" checked={_.agree} onChange={f.onAgree} />
+
+          {/* 单选 */}
+          <label><input type="radio" name="g" checked={_.g === 'a'} onChange={f.radioA} />A</label>
+          <label><input type="radio" name="g" checked={_.g === 'b'} onChange={f.radioB} />B</label>
+
+          {/* 下拉框 */}
+          <select value={_.picked} onChange={f.onPick}>
+            <option value="a">A</option>
+            <option value="b">B</option>
+          </select>
+
+          {/* 多行文本 */}
+          <textarea value={_.text} onInput={f.onText} />
+
+          {/* 禁用状态 */}
+          <input disabled={_.disabled} />
+
+          <button type="submit" disabled={_.disabled}>提交</button>
+        </form>
+      )
+    },
+    data: () => ({
+      text: 'hello',
+      agree: false,
+      g: 'a',
+      picked: 'a',
+      disabled: false
+    }),
+    methods: {
+      onText(dom) { this.data.text = dom.value },
+      onAgree(dom) { this.data.agree = dom.checked },
+      radioA(dom) { if (dom.checked) this.data.g = 'a' },
+      radioB(dom) { if (dom.checked) this.data.g = 'b' },
+      onPick(dom) { this.data.picked = dom.value },
+      submit(dom, e) {
+        e.preventDefault()
+        console.log({ ...this.data })
+      }
+    }
+  }
+}
+```
+
+### 8. 表单注意事项清单
+
+- ✅ `value` / `checked` / `selected` / `disabled` 用**属性**方式绑定，框架自动走 property，不要手动 `setAttribute`。
+- ❌ **不要直接改 `dom.value`** 后指望数据被更新——数据层不会知道，也不会触发 `updated`（可用 `$mupdate` 强制刷新视图，但数据与 DOM 会不一致）。
+- ⚠️ **`<select multiple>`**：`value` property 只能表达单选，多选请改用每个 `<option>` 的 `selected` 属性，或在 `onChange` 中读取 `dom.selectedOptions` 自行维护数组。
+- ⚠️ **`<input type="file">`**：出于安全限制，浏览器不允许程序化写入 `value`，请只读 `dom.files`。
+- ⚠️ **`<textarea>`**：不要同时用 `value` 属性和子文本节点传值；推荐只用 `value`（框架按 property 写入）。
+- ⚠️ **`<select>` 初始值**：`created` 中同步读取不可靠，请用 `$nextTick`（见第 3 节）。
+- ✅ **表单提交**：`<form onSubmit={...}>` 记得 `event.preventDefault()`，注意**第二个参数**才是事件对象。
+- ✅ **attribute 与 property 相互独立**：`input.setAttribute('value', 'attr')` **不会**改变已渲染的 `input.value`（框架受控更新写的是 property）。
+- ✅ **程序化取消勾选**：`data.flag = false` 能正确取消（布尔属性写 property，可穿透 dirty 状态）。
 
 
 
@@ -644,7 +1021,14 @@ vm.$remove()
 
 ### 4. `$mupdate`
 
-`$mupdate` 方法可以手动更新视图，在修改一些没有数据响应的数据但需要更新视图时可以在修改后调用这个方法，或传入一个函数，视图更新会在回调函数执行完后
+`$mupdate` 方法用于**手动**驱动一次视图更新，适合「修改了没有数据响应式的数据（如 `this.datas`），但希望视图刷新」的场景（见 [`mupdate.js`](bindview@3/src/core/mupdate.js:7)）。
+
+- 传入函数时，会**先同步执行**该函数，再把组件入队；
+- 但它**同样走调度器**（`queueJob`）：
+
+<span style="color:red">！！！</span> `$mupdate` **不是同步更新** —— 函数内改完数据后紧接着读 DOM 仍然是旧值。需要立刻读 DOM 时请配合 `$flush()`，或改用 `await this.$nextTick()`。
+
+- 它与数据响应式写入**共用同一个去重队列**：同一轮里 `$mupdate` 与 `_.x++` 混用，也只会 `render + diff` 一次。
 
 ```jsx
 export default function () {
@@ -681,26 +1065,42 @@ export default function () {
 
 ### 5. `$nextTick` 与 `$flush`
 
-由于视图更新采用微任务批处理，数据修改后 DOM 并不会立刻更新。`$nextTick` 用于在本次（下一次）DOM 更新完成后执行回调或 `resolve`：
+由于视图更新采用**微任务批处理**，数据修改后 DOM 并不会立刻更新，这两个方法就是用来「对齐时机」的。
+
+#### `$nextTick(cb?)`
+
+- 返回一个 `Promise`；传入的 `cb` 会在 DOM 更新完成后执行，`Promise` 也会在此时 `resolve`。
+- 会把回调**挂到当前这一轮的 flush 之后**：如果此刻队列里还有待更新任务，它会先安排刷新，再在刷新完成后回调。
+- 即使没有待更新任务，也会在当前微任务之后执行（语义上等价于 `Promise.resolve().then(cb)`）。
 
 ```jsx
 methods: {
   async add() {
     this.data.n = 2
-    await this.$nextTick() // 等待本次更新完成
+    await this.$nextTick()          // 等待本次更新完成
     console.log(this.refs.box.textContent)
+  },
+  add2() {
+    this.data.n = 3
+    this.$nextTick(() => {          // 回调写法
+      console.log(this.refs.box.textContent)
+    })
   }
 }
 ```
 
-> **读取表单初始值的时机**：`<select>` 的初始 `value` 需要等待 `option` 子节点就绪，框架在创建元素时用微任务写入。因此在 `created` 钩子中同步读取（`this.refs.sel.value`）拿到的是浏览器默认选中的首项，而不是你传入的目标值；请在 `$nextTick` 中读取。
+#### `$flush()`
 
-`$flush` 会**立即同步**消费待更新队列（与 `$nextTick` 不同，不等待微任务），一般用于测试与调试：
+- 调用调度器 [`flushJobs()`](bindview@3/src/core/scheduler.js:25)，**立即同步**消费待更新队列（不等待微任务）。
+- 刷新过程中新入队的任务（父组件级联出的子组件）也会在本次 `$flush` 内一并消费完。
+- 主要用于**测试与调试**，业务代码请优先使用 `$nextTick`。
 
 ```js
 vm.data.n++
 vm.$flush() // 同步刷新,可立即读取最新 DOM
 ```
+
+> **读取表单初始值的时机**：`<select>` 的初始 `value` 由微任务写入（需等待 `option` 就绪）。因此在 `created` 中同步读取 `this.refs.sel.value` 拿到的是浏览器默认选中的首项，而不是目标值；请在 `$nextTick` 中读取。详见「表单处理」章节。
 
 ### 6. `$registryStats`（调试统计）
 
@@ -761,11 +1161,11 @@ export default function () {
   return {
     el: '#Root',
     render() {
-      const { data: $ } = this
+      const { data: _ } = this
       return (
         <div>
           <div>App</div>
-          <Dome num={send($, 'num')} arr={send($.arr, 1)} />
+          <Dome num={send(_, 'num')} arr={send(_.arr, 1)} />
         </div>
       )
     },
@@ -815,7 +1215,7 @@ createApp(App, { title: '这是props' }).$mount("#Root")
 `propsType` 用来约束父组件传递给子组件的数据的类型,需要传递两个参数 一个的 `props` , 一个是约束配置对象
 ```jsx
 
-import { propsType } from "../../../bindview@3"
+import { propsType } from "../../../bindview"
 
 export default function B(props) {
   const { test } = propsType(props, {
@@ -836,9 +1236,66 @@ export default function B(props) {
 }
 ```
 
-## 附录：近期 API 与行为更新（v3 重构）
+## 注意事项与常见陷阱
 
-汇总最近一次重构带来的主要变化：
+汇总使用 `bindview` 时最容易踩坑的点。
+
+### 1. 更新时机
+
+- **赋值与读 DOM 之间必须隔一次 `$nextTick`**（测试中可用 `$flush` 同步刷新）。
+- **`updated` 在微任务中触发**，不是赋值语句的下一行；同一轮多次写入只触发一次。
+- **不要在 `updated` 里无条件修改自身依赖的数据**，否则会在同一轮内反复更新。
+- **不要在 `render` 中修改 `data`**：初始化阶段会被调度器守卫忽略，更新阶段可能引起重复渲染。
+
+### 2. 引用与 `key`
+
+- `key` **一经确定不可变化**，变化会直接抛 [`BvError`](bindview@3/src/tools/BvError.js)（见 [`diffmain.js`](bindview@3/src/core/diff_core/diffmain.js:217)）。
+- **纯 keyed 列表**（所有子节点都带 `key`）才会走 key 对齐算法，支持插入 / 删除 / **重排**并复用真实 DOM；只要有一个子节点缺 `key` 就会退化为按索引比较。
+- 列表渲染请始终为同级兄弟节点提供**稳定且唯一**的 `key`。
+
+### 3. 组件
+
+- 组件名**建议大写**（避免与 HTML 标签混淆）；未注册的组件会被渲染成红色警告占位块。
+- **动态组件必须提供唯一且不变的 `id`**（可配合 `createID()`），否则会出现更新 / 卸载异常。
+- `linkage: false` 只关闭「父组件更新时对子组件的联动更新」，**不影响**子组件自身的数据响应式，也**不会**阻止销毁级联（[`Remove.js`](bindview@3/src/core/Remove.js:28) 会无条件注销子组件）。
+- 在 `created` 中异步加载组件后，用 `$appendComponent` 注册；注册完成后记得改一次数据以触发渲染。
+
+### 4. 插槽
+
+- **普通插槽**（直接写文档结构）会**失去响应式**，只适合一次性内容。
+- 需要响应式请使用**函数插槽**。
+- 多插槽需要用 `{}` 分别包裹，此时 `slot` 参数会收到数组。
+
+### 5. 事件
+
+- 事件回调签名是 `(dom, event)`，**不是** React 的 `(event)`；`this` 指向组件实例。
+- 事件处理器支持在 `diff` 阶段新增 / 更新 / 移除；但仍建议避免在每次渲染时创建全新的内联函数，以减少无谓的属性比较。
+
+### 6. 环境与构建
+
+- `bindview` 依赖浏览器 DOM，在 **SSR / Node** 环境下初始化或 `$mount` 会**抛出明确错误**（见 [`domEnv.js`](bindview@3/src/tools/domEnv.js)）。
+- 版本横幅仅在开发模式（`__DEV__`）且 `Bindview.displayVer` 为真时打印；生产构建会裁剪 `console.warn`。
+- 目前不支持源码 `src` 直接引入，推荐使用官方 webpack 模板。
+
+### 7. 卸载与调试
+
+- `$remove()` 会先触发 `beforeDestroy`，随后移除 DOM 并清空 `_KeyMapDom` / `_KeyMapComponent`；卸载后实例 `_oldvnode` 为 `null`，此时再改数据**不会**再调度更新。
+- `$registryStats()` 可用来检查 DOM / 组件映射是否残留（排查内存泄漏）。
+- 动态修改 `ref` 属性非常不推荐（框架会发出警告）。
+
+### 8. 其他
+
+- `{null}` / `{undefined}` / `{false}` / `{true}` 作为子节点**不会**被渲染成文本，可以放心书写 `{cond && <div/>}`。
+- `data` 支持对象或函数；**组件内推荐使用函数**，可为每个实例返回独立数据。
+- 数组的变异方法、`arr.length = 0`、`delete obj.prop`、深层嵌套属性均为响应式。
+
+
+
+## 附录：版本变更记录
+
+### v3.2.0 —— 微任务批处理重构
+
+汇总本次重构带来的主要变化：
 
 - **异步批处理更新**：新增更新调度器，同一任务内对同一实例的多次写入只执行一次 `render + diff`；新增原型方法 `$nextTick`（等待 DOM 更新）与 `$flush`（测试/调试用同步刷新）。
 - **去掉重复更新**：父组件更新后，子 / 后代组件不再被重复刷新。
@@ -855,3 +1312,18 @@ export default function B(props) {
 - **`<select>` 受控值二次同步**：diff 中子节点处理完成后会再同步一次 `select.value`，修复「同一轮内 `option` 列表与 `value` 同时变化时 `value` 被置空」的问题（此前即使等到 `$nextTick` 也读不到目标值）。
 - **表单值归一化**：`value` 属性在建节点与 diff 更新时都会做归一化，`undefined` / `null` 统一写为空串，`<input value={undefined}>` 不再渲染成 `"undefined"`。
 - **空值与布尔子节点不渲染文本**：`{null}`、`{undefined}`、`{false}` / `{true}` 作为子节点不再被字符串化成 `"null"` / `"undefined"` / `"false"` 文本（与 React / Vue 语义一致），因此 `{ok && <div/>}` 这类条件渲染可以直接书写。
+
+### 从「同步更新」迁移到「微任务批处理」
+
+若你从旧版本升级，请重点关注以下**行为变化**：
+
+| 场景 | 旧行为 | 新行为 / 迁移建议 |
+| :--- | :--- | :--- |
+| 赋值后立即读 DOM | 通常能读到新值 | 读不到；改用 `await this.$nextTick()` |
+| `updated` 触发次数 | 每次写入触发一次 | 每轮 flush 触发一次 |
+| `updated` 触发时机 | 与赋值同步 | 微任务中异步触发 |
+| 连续多次赋值 | 触发多次渲染 | 合并为一次 `render + diff` |
+| 父组件更新 | 会刷新全部后代 | 只入队需要联动的子组件，避免重复刷新 |
+| `$mupdate` | 立即更新 | 走调度器，异步生效 |
+| `<select>` 初始值 | 视实现而定 | `created` 中同步读取不可靠，请用 `$nextTick` |
+| 测试中断言 DOM | 可直接断言 | 使用 `$flush()` 或 `await $nextTick()` |
