@@ -8,7 +8,6 @@ import SetAttr from "./SetAttr"
 import { setDomEventHandler, removeDomEventHandler } from "../eventBinding"
 import BvError from "../../tools/BvError";
 import Vnode from "../../tools/Vnode";
-import GetNewNodeLocation from "./GetNewNodeLocation";
 import RemoveNode from "./RemoveNode";
 import BvWarn from "../../tools/BvWarn";
 
@@ -198,15 +197,24 @@ export default function diffmain(oldvnode, newvnode) {
           }
         } else if (newChildren.length < oldChildren.length) {
           // 子节点长度减少
-          let index = GetNewNodeLocation(newChildren, oldChildren)
-          for (let i = 0; i < oldChildren.length; i++) {
-            if (index.includes(i)) {
-              RemoveNode(oldChildren[i], vm)
-            } else if (i < newChildren.length) {
-              vm._diffmain(oldChildren[i], newChildren[i])
-            }
-          }
-          index = null
+          //
+          // 此分支只处理「非纯 keyed 列表」(纯 keyed 列表已由上面的 PatchChildren 处理)。
+          // Assign_key 已把新节点与对应旧节点的内部 key 同步好,这里按内部 key 对齐:
+          // 保留被新列表引用的旧节点并做内容级 diff,其余旧节点整体移除。
+          //
+          // 旧实现在「新索引(index)」与「旧索引(i)」两套坐标间混用:index 是「新列表中
+          // 新增项的索引」,却拿去和旧索引比较,导致应当移除的旧节点被保留在 DOM 中。
+          // 典型表现:骨架屏从「真实内容」切回「占位态」时,多余旧占位行 / 文本残留。
+          const oldByKey = new Map()
+          oldChildren.forEach(child => oldByKey.set(child.key, child))
+          const newKeySet = new Set(newChildren.map(child => child.key))
+          oldChildren.forEach(oldChild => {
+            if (!newKeySet.has(oldChild.key)) RemoveNode(oldChild, vm)
+          })
+          newChildren.forEach(newChild => {
+            const oldChild = oldByKey.get(newChild.key)
+            if (oldChild !== void 0) vm._diffmain(oldChild, newChild)
+          })
         }
 
         // options 就绪后同步 <select> 的受控 value

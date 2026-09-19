@@ -6,22 +6,45 @@ import { notifyComponentUpdated } from "../tools/devtools"
 
 
 /**
+ * 判断是否为一个「纯 keyed 列表」
+ *
+ * 与 diffmain 中的 isKeyedList 保持一致:必须所有子节点都是携带 key 属性的 vnode。
+ * 仅检查首尾节点是不够的——首尾带 key、中间或旧列表中混有不带 key / attributes 为 null
+ * 的节点时,后续按 key 建立映射会读到 null.attributes 而崩溃。
+ *
+ * @param {Array<Vnode|Vtext>} children 子节点列表
+ * @returns {Boolean}
+ */
+function isKeyedList(children) {
+  if (!Array.isArray(children) || children.length === 0) return false
+  return children.every(child => isVnode(child) && child.attributes && child.attributes.key !== void 0)
+}
+
+/**
  * 对具有 key 的列表进行 key 同步
  * @param {Array<Vnode>} oldvnodecChildren 旧子节点
  * @param {Array<Vnode>} newvnodeChildren 新子节点
  */
 function Assign_list_key(oldvnodecChildren, newvnodeChildren) {
   // 创建一个映射，用于快速查找旧子节点的 key
-  const oldKeysMap = new Map(oldvnodecChildren.map(child => {
-    return [child.attributes.key, child]
-  }));
+  // 仅收集合法的 keyed vnode,避免旧列表中混入无 attributes 的节点时读取 null.key 崩溃
+  const oldKeysMap = new Map()
+  for (let i = 0; i < oldvnodecChildren.length; i++) {
+    const oldChild = oldvnodecChildren[i]
+    if (isVnode(oldChild) && oldChild.attributes && oldChild.attributes.key !== void 0) {
+      oldKeysMap.set(oldChild.attributes.key, oldChild)
+    }
+  }
   // 遍历新的子节点列表
   for (let i = 0; i < newvnodeChildren.length; i++) {
-    const newChildKey = newvnodeChildren[i].attributes['key'];
+    const newChild = newvnodeChildren[i]
+    if (!isVnode(newChild) || !newChild.attributes) continue
+    const newChildKey = newChild.attributes['key'];
     // 利用映射快速查找对应的旧节点 key
     if (oldKeysMap.has(newChildKey)) {
-      newvnodeChildren[i].key = oldKeysMap.get(newChildKey)['key'];
-      Assign_key(oldKeysMap.get(newChildKey), newvnodeChildren[i]) // 对子节点的 key 进行处理
+      const oldChild = oldKeysMap.get(newChildKey)
+      newChild.key = oldChild['key'];
+      Assign_key(oldChild, newChild) // 对子节点的 key 进行处理
     }
   }
 }
@@ -42,7 +65,10 @@ function Assign_key(oldvnode, newvnode) {
     } else if (isVnode(newvnode) && isVnode(oldvnode)) {
       newvnode.key = oldvnode.key;
       if (newvnode.children ? newvnode.children.length > 0 : false) {
-        if (newvnode.children[0].attributes ? ((newvnode.children[0].attributes.key !== void 0) && (newvnode.children[newvnode.children.length - 1].attributes.key !== void 0)) ? true : false : false) {
+        // 仅当「新旧列表都是纯 keyed 列表」时才按 key 对齐。
+        // 若只检查新列表(尤其只看首尾节点),当旧列表来自无 key 分支(如骨架屏在
+        // 占位态 / 真实内容态之间切换)时会进入 key 映射逻辑并读取 null.attributes 崩溃。
+        if (isKeyedList(newvnode.children) && isKeyedList(oldvnode.children)) {
           // 对具有 key 的列表进行单独处理
           Assign_list_key(oldvnode.children, newvnode.children)
         } else {
